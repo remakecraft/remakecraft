@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,7 +29,8 @@ test("with a report, the suite runner prints the pass count and each failure", (
 });
 
 test("--bin points the tests at another program through REMAKE_APP_BIN", (t) => {
-  const dir = mkdtempSync(path.join(os.tmpdir(), "rc-suite-"));
+  // realpath: on macOS tmpdir is /var, a symlink the child's cwd resolves to /private/var.
+  const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), "rc-suite-")));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   mkdirSync(path.join(dir, "t"));
   writeFileSync(path.join(dir, "original.mjs"), "");
