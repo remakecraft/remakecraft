@@ -6,16 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-19
+
+First public release.
+
 ### Added
 
 - `LEGAL.md`: what Remakecraft is and is not for, what each mode means, no warranty, and how rights holders reach the author. Linked from a new README "Responsible use" section and from SECURITY.md.
-
-## [0.1.0] - Unreleased
-
-First public release, planned for 2026-10-19.
-
-### Added
-
 - `remake` skill: inventory, spec with a human checkpoint, tests before code, build, verify, review, report.
 - Six agents with separate roles: observer, spec-writer and test-writer in the room; builder, verifier and reviewer on the clean side.
 - Hook-enforced clean-room wall: a hook denies clean-side calls that name the room and builders' Write and Edit calls to `tests/`, `spec/` and `remake.json`, and refuses decompilers and blocklisted names for every role. The guard fails closed.
@@ -30,6 +27,7 @@ First public release, planned for 2026-10-19.
 - README: Claude Code 2.1.295+ and Node 20+ requirements, a summary of what the wall enforces and what it does not, above the fold, a measured toy-run scoreboard row, and an FAQ.
 - Claude Code version preflight: `init-run.mjs` and `try.mjs` refuse to start a run below Claude Code 2.1.295, where the wall's `onFailure: "block"` is missing and it fails open; an unreadable version only warns.
 - The build workflow takes a `pluginRoot` arg and bakes absolute script paths into agent prompts, since `${CLAUDE_PLUGIN_ROOT}` is not reliably set in agent Bash.
+- Community files: contributing guide with scoreboard submissions, code of conduct, security policy, issue, pull-request and discussion templates, the 3-day feature vote, and a local release procedure.
 
 ### Changed
 
@@ -40,7 +38,8 @@ First public release, planned for 2026-10-19.
 ### Measured
 
 - Toy app (tally, bundled in `evals/fixtures`): 187 of 191 conformance tests pass (97.9%, sealed tests included), 35 minutes, $6.29 in tokens, run on Windows. The cost is a floor.
-- Community files: contributing guide with scoreboard submissions, code of conduct, security policy, issue, pull-request and discussion templates, the 3-day feature vote, and a local release procedure.
+- Brushling (Paint-style app, Rust + egui): 470 of 471 (99.7%), 154 of 154 sealed, 2 h 56 min wall, $41.08 in tokens. The one failure is a spec defect the review caught.
+- Sweepling (Minesweeper): 265 of 265, about $30, run overnight unattended. Its tests are headless, so its dialogs were never checked in a real window.
 
 [Unreleased]: https://github.com/remakecraft/remakecraft/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/remakecraft/remakecraft/releases/tag/v0.1.0
