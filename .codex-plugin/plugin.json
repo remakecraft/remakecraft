@@ -1,0 +1,26 @@
+{
+  "name": "remakecraft",
+  "version": "0.1.0",
+  "description": "Name an app, get a native rewrite. A clean-room pipeline with sealed tests and an honest parity score.",
+  "author": { "name": "Sverre", "url": "https://github.com/hellosverre" },
+  "homepage": "https://github.com/remakecraft/remakecraft",
+  "repository": "https://github.com/remakecraft/remakecraft",
+  "license": "MIT",
+  "keywords": ["clean-room", "clone", "rewrite", "parity", "multi-agent"],
+  "skills": "./skills/",
+  "hooks": {},
+  "interface": {
+    "displayName": "Remakecraft",
+    "shortDescription": "Clean-room rewrites of apps you don't have the source for",
+    "longDescription": "Inventory an app from its docs, screenshots and recordings, write a behaviour-only spec, generate conformance tests with a sealed holdout before any code, build from the spec alone and score parity honestly. In Codex the clean-room rules are instructions; Claude Code enforces them with hooks.",
+    "developerName": "Sverre",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "defaultPrompt": [
+      "Clone this app for me from its docs and screenshots.",
+      "Rebuild this CLI from scratch; I don't have its source."
+    ],
+    "websiteURL": "https://github.com/remakecraft/remakecraft",
+    "brandColor": "#2B2D42"
+  }
+}

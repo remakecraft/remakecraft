@@ -1,0 +1,25 @@
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas is for thinking out loud before something becomes a proposal. Once an idea is concrete, open a [feature-vote issue](https://github.com/remakecraft/remakecraft/issues/new?template=feature-vote.yml) so it can enter the [3-day vote](https://github.com/remakecraft/remakecraft/blob/main/docs/feature-vote.md). Want an app cloned? Use a [clone request](https://github.com/remakecraft/remakecraft/issues/new?template=clone-request.yml).
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What you would like Remakecraft to do, in a few lines.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it matters
+      description: The run, app or moment where you wanted it.
+    validations:
+      required: true
+  - type: textarea
+    id: open
+    attributes:
+      label: Open questions
+      description: What you are not sure about, including any effect on the clean-room wall.

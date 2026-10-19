@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: spec-has-no-expression
+context:
+  scaffold_script: scaffold.sh

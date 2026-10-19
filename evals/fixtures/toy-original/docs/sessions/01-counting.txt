@@ -1,0 +1,41 @@
+# Observed session 1: counting up and down.
+# Recorded with tally 1.0 in a fresh, empty directory. "$ " lines are what
+# was typed; everything else is what the terminal showed.
+$ tally
+0
+$ ls -a
+.
+..
+$ tally add
+1
+$ tally add 41
+42
+$ tally sub 2
+40
+$ tally show
+40
+$ cat .tally
+tally 1
+40
+0
+1
+42
+$ tally sub 999
+0
+$ tally sub
+0
+$ tally reset
+0
+$ cat .tally
+tally 1
+0
+0
+1
+42
+40
+$ tally add 7
+7
+$ tally reset
+0
+$ echo $?
+0

@@ -1,0 +1,5 @@
+node_modules/
+.remake/
+*.remake-room/
+evals/results/
+.DS_Store

@@ -1,0 +1,57 @@
+# Observed session 3: typos, bad amounts and a hand-edited save file.
+# Recorded with tally 1.0 in a fresh, empty directory.
+$ tally inc
+tally: unknown command 'inc' (try 'tally help')
+$ echo $?
+2
+$ tally add 0
+tally: amount must be a whole number from 1 to 999999
+$ echo $?
+2
+$ tally add 007
+tally: amount must be a whole number from 1 to 999999
+$ tally sub -3
+tally: amount must be a whole number from 1 to 999999
+$ tally add 1000000
+tally: amount must be a whole number from 1 to 999999
+$ tally add 999999
+999999
+$ tally add 1 2
+tally: too many arguments
+$ echo $?
+2
+$ tally reset now
+tally: too many arguments
+$ tally
+999999
+$ printf 'tally 1\n12\n' > .tally
+$ tally
+12
+$ printf 'tally 2\n12\n' > .tally
+$ tally
+tally: save file .tally is damaged
+$ echo $?
+3
+$ tally add 1
+tally: save file .tally is damaged
+$ cat .tally
+tally 2
+12
+$ printf 'tally 1\n12' > .tally
+$ tally
+tally: save file .tally is damaged
+$ printf 'tally 1\n012\n' > .tally
+$ tally
+tally: save file .tally is damaged
+$ printf 'tally 1\n' > .tally
+$ tally undo
+tally: save file .tally is damaged
+$ printf 'tally 1\n4\n3\n' > .tally
+$ tally undo
+3
+$ tally bogus
+tally: unknown command 'bogus' (try 'tally help')
+$ tally help
+usage: tally [show | add [n] | sub [n] | reset | undo | help]
+$ echo $?
+0

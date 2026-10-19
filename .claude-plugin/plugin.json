@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin.json",
+  "name": "remakecraft",
+  "displayName": "Remakecraft",
+  "version": "0.1.0",
+  "description": "Name an app, get a native rewrite. A clean-room pipeline with a hook-enforced wall, sealed tests and an honest parity score.",
+  "author": { "name": "Sverre", "url": "https://github.com/hellosverre" },
+  "homepage": "https://github.com/remakecraft/remakecraft",
+  "repository": "https://github.com/remakecraft/remakecraft",
+  "license": "MIT",
+  "keywords": ["clean-room", "clone", "rewrite", "parity", "multi-agent", "workflow"]
+}

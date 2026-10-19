@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a wall bypass privately
+    url: https://github.com/remakecraft/remakecraft/security/advisories/new
+    about: Working ways past the clean-room wall go here, never in a public issue.
+  - name: Questions and ideas (Discussions)
+    url: https://github.com/remakecraft/remakecraft/discussions
+    about: Ask how something works, share a clone, or talk through an idea before it becomes a proposal.
+  - name: Vote on what gets built next
+    url: https://github.com/remakecraft/remakecraft/discussions/categories/polls
+    about: A new poll opens every 3 days.

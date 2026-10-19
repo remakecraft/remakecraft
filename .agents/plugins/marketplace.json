@@ -1,0 +1,12 @@
+{
+  "name": "remakecraft",
+  "interface": { "displayName": "Remakecraft" },
+  "plugins": [
+    {
+      "name": "remakecraft",
+      "source": { "source": "local", "path": "./" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Developer Tools"
+    }
+  ]
+}

@@ -1,0 +1,444 @@
+{
+  "$comment": "Source of truth for the Remakecraft mascots. Edit here, then run `npm run mascot`. Blit is a pixel-perfect copy of Blot, so both share one set of drop grids and differ only in body colour.",
+  "palette": {
+    "outline": "#111111",
+    "white": "#ffffff",
+    "silver": "#c0c0c0",
+    "teal": "#008080",
+    "edge": "#4a515c"
+  },
+  "legend": {
+    ".": null,
+    "X": "outline",
+    "P": "outline",
+    "E": "white",
+    "h": "white",
+    "w": "white",
+    "s": "silver",
+    "t": "teal",
+    "o": "body"
+  },
+  "characters": {
+    "blot": { "body": "silver", "role": "the original" },
+    "blit": { "body": "teal", "role": "the remake" }
+  },
+  "drop": {
+    "neutral": [
+      "......XX......",
+      ".....XooX.....",
+      ".....XooX.....",
+      "....XohooX....",
+      "...XohooooX...",
+      "..XohooooooX..",
+      ".XooooooooooX.",
+      ".XoEEooooEEoX.",
+      ".XoEPooooPEoX.",
+      ".XooooooooooX.",
+      ".XoooXooXoooX.",
+      "..XoooXXoooX..",
+      "...XXooooXX...",
+      ".....XXXX....."
+    ],
+    "lookLeft": [
+      "......XX......",
+      ".....XooX.....",
+      ".....XooX.....",
+      "....XohooX....",
+      "...XohooooX...",
+      "..XohooooooX..",
+      ".XooooooooooX.",
+      ".XoEEooooEEoX.",
+      ".XoPEooooPEoX.",
+      ".XooooooooooX.",
+      ".XoooXooXoooX.",
+      "..XoooXXoooX..",
+      "...XXooooXX...",
+      ".....XXXX....."
+    ],
+    "lookRight": [
+      "......XX......",
+      ".....XooX.....",
+      ".....XooX.....",
+      "....XohooX....",
+      "...XohooooX...",
+      "..XohooooooX..",
+      ".XooooooooooX.",
+      ".XoEEooooEEoX.",
+      ".XoEPooooEPoX.",
+      ".XooooooooooX.",
+      ".XoooXooXoooX.",
+      "..XoooXXoooX..",
+      "...XXooooXX...",
+      ".....XXXX....."
+    ],
+    "blink": [
+      "......XX......",
+      ".....XooX.....",
+      ".....XooX.....",
+      "....XohooX....",
+      "...XohooooX...",
+      "..XohooooooX..",
+      ".XooooooooooX.",
+      ".XooooooooooX.",
+      ".XoXXooooXXoX.",
+      ".XooooooooooX.",
+      ".XoooXooXoooX.",
+      "..XoooXXoooX..",
+      "...XXooooXX...",
+      ".....XXXX....."
+    ],
+    "landLeft": [
+      "......XX......",
+      ".....XooX.....",
+      "....XohooX....",
+      "...XohooooX...",
+      "..XohooooooX..",
+      ".XooooooooooX.",
+      ".XoEEooooEEoX.",
+      ".XoPEooooPEoX.",
+      "XooooooooooooX",
+      "XooooXooXooooX",
+      ".XooooXXooooX.",
+      "..XXooooooXX..",
+      "....XXXXXX...."
+    ],
+    "sleep": [
+      "......XX......",
+      ".....XooX.....",
+      "....XohooX....",
+      "...XohooooX...",
+      "..XohooooooX..",
+      ".XooooooooooX.",
+      ".XooooooooooX.",
+      ".XoPPooooPPoX.",
+      "XooooooooooooX",
+      "XooooooooooooX",
+      ".XooooPPooooX.",
+      "..XXooooooXX..",
+      "....XXXXXX...."
+    ],
+    "confused": [
+      "......XX......",
+      ".....XooX.....",
+      ".....XooX.....",
+      "....XohooX....",
+      "...XohooooX...",
+      "..XohooooooX..",
+      ".XooooooooooX.",
+      ".XoooooooEPoX.",
+      ".XoPPooooEEoX.",
+      ".XooooooooooX.",
+      ".XooooPoPoooX.",
+      "..XooPoPoooX..",
+      "...XXooooXX...",
+      ".....XXXX....."
+    ]
+  },
+  "brushArm": {
+    "$comment": "Overlay drawn over a drop, offset from the drop's top-left. '.' keeps whatever is underneath.",
+    "x": 12,
+    "y": -1,
+    "grid": [
+      "......X.",
+      ".....XtX",
+      ".....XtX",
+      "....XwX.",
+      "....XwX.",
+      "...XsX..",
+      "...XsX..",
+      ".XXsX...",
+      ".oooX...",
+      ".oooX...",
+      ".XsX....",
+      "..X....."
+    ]
+  },
+  "trail": {
+    "$comment": "The drip: a silver droplet, a half-copied one, a teal one.",
+    "grid": [
+      ".X.........",
+      "XsX........",
+      ".X..XX.....",
+      "...XstX....",
+      "...XtsX....",
+      "....XX..XX.",
+      ".......XttX",
+      ".......XttX",
+      "........XX."
+    ]
+  },
+  "wallTrail": {
+    "$comment": "Blot's trail in the wall pose: silver all the way, and the last drop splats flat against the wall.",
+    "grid": [
+      ".X........",
+      "XsX..XX...",
+      ".X..XssX..",
+      "....XssX.X",
+      ".....XX.Xs",
+      "........Xs",
+      ".........X"
+    ]
+  },
+  "wall": {
+    "$comment": "The clean-room wall: running-bond bricks 7x2, #111 mortar, a white corner on each brick.",
+    "grid": [
+      "XXXXXXXXXXXXXXXXX",
+      "XwssssssXwssssssX",
+      "XsssssssXsssssssX",
+      "XXXXXXXXXXXXXXXXX",
+      "XwssXwssssssXwssX",
+      "XsssXsssssssXsssX",
+      "XXXXXXXXXXXXXXXXX",
+      "XwssssssXwssssssX",
+      "XsssssssXsssssssX",
+      "XXXXXXXXXXXXXXXXX",
+      "XwssXwssssssXwssX",
+      "XsssXsssssssXsssX",
+      "XXXXXXXXXXXXXXXXX",
+      "XwssssssXwssssssX",
+      "XsssssssXsssssssX",
+      "XXXXXXXXXXXXXXXXX",
+      "XwssXwssssssXwssX",
+      "XsssXsssssssXsssX",
+      "XXXXXXXXXXXXXXXXX"
+    ]
+  },
+  "zzz": {
+    "grid": [
+      ".....ttttt",
+      "........t.",
+      ".......t..",
+      "......t...",
+      ".....ttttt",
+      "..........",
+      "tttt......",
+      "..t.......",
+      ".t........",
+      "tttt......"
+    ]
+  },
+  "question": {
+    "grid": [
+      ".tttt.",
+      "tt..tt",
+      "....tt",
+      "...tt.",
+      "..tt..",
+      "..tt..",
+      "......",
+      "..tt..",
+      "..tt.."
+    ]
+  },
+  "phases": {
+    "$comment": "One 14x14 icon per run phase, in pipeline order. Same palette as the drops; fills carry the shape on dark backgrounds, outlines on light ones.",
+    "inventory": [
+      ".....XXXX.....",
+      ".XXXXXssXXXXX.",
+      ".XsssXXXXsssX.",
+      ".XswwwwwwwwsX.",
+      ".XswtwXXXXwsX.",
+      ".XswwwwwwwwsX.",
+      ".XswtwXXXwwsX.",
+      ".XswwwwwwwwsX.",
+      ".XswtwXXXXwsX.",
+      ".XswwwwwwwwsX.",
+      ".XswtwXXwwwsX.",
+      ".XswwwwwwwwsX.",
+      ".XssssssssssX.",
+      ".XXXXXXXXXXXX."
+    ],
+    "spec": [
+      ".XXXXXXXXX....",
+      ".XtttttttXX...",
+      ".XtwwwwttXwX..",
+      ".XtttttttXwwX.",
+      ".XtttttttXXXX.",
+      ".XttttttttttX.",
+      ".XtwwwwwwwwtX.",
+      ".XtwttttttwtX.",
+      ".XtwttttttwtX.",
+      ".XtwwwwwwwwtX.",
+      ".XttttttttttX.",
+      ".XtwwwtwwwttX.",
+      ".XttttttttttX.",
+      ".XXXXXXXXXXXX."
+    ],
+    "tests": [
+      "....XXXXXX....",
+      ".....XwwX.....",
+      ".....XwwX.....",
+      ".....XwwX.....",
+      "....XwwwwX....",
+      "....XwwwwX....",
+      "...XwwwwwwX...",
+      "...XttttttX...",
+      "..XttwtttttX..",
+      "..XtttttwttX..",
+      ".XttttttttttX.",
+      ".XtwttttttttX.",
+      ".XttttttttttX.",
+      "..XXXXXXXXXX.."
+    ],
+    "pilot": [
+      "............X.",
+      "..........XXwX",
+      ".........XwwsX",
+      ".......XXwwsX.",
+      ".....XXwwwssX.",
+      "...XXwwwwssX..",
+      ".XXwwwwwwssX..",
+      "XwwwwwwwsssX..",
+      ".XXXXXwsssX...",
+      "......XsssX...",
+      ".......XssX...",
+      ".......XsX....",
+      "........X.....",
+      ".............."
+    ],
+    "build": [
+      ".....X........",
+      "....XwX.......",
+      "...XwswX......",
+      "..XwssswX.....",
+      "...XsssswX....",
+      "....XsssswX...",
+      ".....XsssswX..",
+      "....XwtsssswX.",
+      "...XwttXsssswX",
+      "..XwttX.XXssX.",
+      ".XwttX....XsX.",
+      "XwttX......X..",
+      ".XtX..........",
+      "..X..........."
+    ],
+    "verify": [
+      ".XXXXXXXXXXXX.",
+      ".XwwwwwwwwwsX.",
+      ".XwwwwwwwwtsX.",
+      ".XwwwwwwwttsX.",
+      ".XwwwwwwttwsX.",
+      ".XwttwwttwwsX.",
+      ".XwwttttwwwsX.",
+      ".XswwttwwwssX.",
+      "..XswwwwwssX..",
+      "..XsswwwsssX..",
+      "...XsswssX....",
+      "....XsssX.....",
+      ".....XsX......",
+      "......X......."
+    ],
+    "review": [
+      "....XXX.......",
+      "...XsssX......",
+      "..XsssssX.....",
+      ".XswwtttsX....",
+      "XsswttttssX...",
+      "XsstttttssX...",
+      "XsstttttssX...",
+      ".XstttttsX....",
+      "..XsssssssX...",
+      "...XsssXsssX..",
+      "....XXX.XsssX.",
+      ".........XsssX",
+      "..........XssX",
+      "...........XX."
+    ]
+  },
+  "scenes": {
+    "drip": {
+      "width": 39,
+      "height": 23,
+      "layers": [
+        { "character": "blot", "pose": "lookRight", "x": 0, "y": 0 },
+        { "grid": "trail", "x": 14, "y": 10 },
+        { "character": "blit", "pose": "lookLeft", "x": 25, "y": 9 }
+      ]
+    },
+    "eye-contact": {
+      "width": 30,
+      "height": 15,
+      "layers": [
+        { "character": "blot", "pose": "lookRight", "x": 0, "y": 1 },
+        { "character": "blit", "pose": "lookLeft", "x": 16, "y": 1 }
+      ]
+    },
+    "blink": {
+      "width": 30,
+      "height": 14,
+      "layers": [
+        { "character": "blot", "pose": "neutral", "x": 0, "y": 0 },
+        { "character": "blit", "pose": "blink", "x": 16, "y": 0 }
+      ]
+    },
+    "brush": {
+      "width": 36,
+      "height": 15,
+      "layers": [
+        { "character": "blot", "pose": "lookRight", "x": 0, "y": 1 },
+        { "character": "blit", "pose": "lookLeft", "x": 16, "y": 1, "overlay": "brushArm" }
+      ]
+    },
+    "wall": {
+      "$comment": "Blot on the original's side, Blit on the clean side looking away. On dark pages the silhouette edge turns grey, so the shapes stay apart.",
+      "width": 59,
+      "height": 21,
+      "darkEdge": "edge",
+      "layers": [
+        { "character": "blot", "pose": "lookRight", "x": 1, "y": 6 },
+        { "grid": "wallTrail", "x": 15, "y": 13 },
+        { "grid": "wall", "x": 25, "y": 1 },
+        { "character": "blit", "pose": "lookRight", "x": 44, "y": 6 }
+      ]
+    },
+    "blit-sleeping": {
+      "width": 24,
+      "height": 22,
+      "darkEdge": "edge",
+      "layers": [
+        { "character": "blit", "pose": "sleep", "x": 1, "y": 8 },
+        { "grid": "zzz", "x": 13, "y": 1 }
+      ]
+    },
+    "blit-confused": {
+      "width": 19,
+      "height": 21,
+      "darkEdge": "edge",
+      "layers": [
+        { "character": "blit", "pose": "confused", "x": 1, "y": 6 },
+        { "grid": "question", "x": 12, "y": 1 }
+      ]
+    },
+    "blot": {
+      "width": 14,
+      "height": 14,
+      "layers": [{ "character": "blot", "pose": "neutral", "x": 0, "y": 0 }]
+    },
+    "blit": {
+      "width": 14,
+      "height": 14,
+      "layers": [{ "character": "blit", "pose": "neutral", "x": 0, "y": 0 }]
+    }
+  },
+  "favicon": {
+    "$comment": "A dedicated 16x16 mark, not a downscale: Blit in front, Blot peeking from behind.",
+    "grid": [
+      ".....XX.........",
+      "....XssX........",
+      "...XshssX.......",
+      "..XshssssXX.....",
+      ".XshssssXttX....",
+      "XssssssXthttX...",
+      "XsEEssXthttttX..",
+      "XsEPsXthttttttX.",
+      "XsssXttttttttttX",
+      "XsssXtEEttttEEtX",
+      ".XssXtPEttttPEtX",
+      "..XXXttttttttttX",
+      "....XtttXttXtttX",
+      ".....XtttXXtttX.",
+      "......XXttttXX..",
+      "........XXXX...."
+    ]
+  }
+}

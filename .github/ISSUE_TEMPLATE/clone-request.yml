@@ -1,0 +1,79 @@
+name: Clone request
+description: Ask for an app to be cloned next. Requests go into the 3-day community vote.
+title: "clone: "
+labels: ["clone-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Requests are picked by the [3-day community vote](https://github.com/remakecraft/remakecraft/blob/main/docs/feature-vote.md). Add a 👍 to requests you want to see in the next poll. One app per issue; search first and upvote an existing request instead of opening a duplicate.
+
+        ## Refused targets
+
+        Remakecraft will not clone these, and requests for them are closed:
+
+        - **DRM and copy protection:** licence managers, activation and licence-check systems, content decryption modules, anything that enforces who may use or copy software or media.
+        - **Anti-cheat:** kernel or user-mode anti-cheat, game integrity checks, and anything built to evade them.
+        - **Security software:** antivirus, EDR and other endpoint protection, firewalls, and anything built to disable or evade them.
+
+        Cloning these risks breaking anti-circumvention law and invites exactly the kind of legal trouble the clean room exists to avoid.
+  - type: checkboxes
+    id: d6
+    attributes:
+      label: Refused targets
+      options:
+        - label: The app is not DRM or copy protection, not anti-cheat, and not security software, and the clone would not help defeat any of them.
+          required: true
+  - type: input
+    id: app
+    attributes:
+      label: App
+      description: Name and version or year.
+      placeholder: "Windows 98 Minesweeper"
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Official page
+      description: Where a user would get the original lawfully.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - Desktop app
+        - Web app
+        - Other (v1 supports desktop and web apps only)
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Is the original open source?
+      description: Closed-source targets are preferred. An open-source target is a weaker clean room, because the models have likely seen its code.
+      options:
+        - "No, closed source"
+        - "Yes, open source"
+        - "Not sure"
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this one
+      description: Who would use the clone, and what makes it a good test of the pipeline.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Core features
+      description: The handful of things the clone must do to count. The full inventory comes from the observer.
+  - type: textarea
+    id: prior-art
+    attributes:
+      label: Known open-source reimplementations
+      description: These go on the run's blocklist so the agents never read them. List any you know of.

@@ -1,0 +1,15 @@
+{
+  "name": "remakecraft",
+  "description": "Remakecraft: clean-room app rewrites with an enforced wall, sealed tests and an honest parity score",
+  "owner": {
+    "name": "Sverre",
+    "url": "https://github.com/hellosverre"
+  },
+  "plugins": [
+    {
+      "name": "remakecraft",
+      "source": "./",
+      "description": "Clean-room app rewrite pipeline with an enforced wall and sealed tests"
+    }
+  ]
+}

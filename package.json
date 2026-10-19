@@ -1,0 +1,14 @@
+{
+  "name": "remakecraft",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test",
+    "validate": "claude plugin validate . --strict",
+    "eval": "claude plugin eval . --scaffold --trust-plugin --tag no-shell --allow-tools Write Edit",
+    "eval:e2e": "claude plugin eval . --scaffold --trust-plugin --case tiny-app-parity --allow-tools Bash Write Edit",
+    "mascot": "node scripts/mascot.mjs",
+    "serve": "node scripts/serve.mjs"
+  }
+}

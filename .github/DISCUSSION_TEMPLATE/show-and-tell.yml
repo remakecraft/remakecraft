@@ -1,0 +1,52 @@
+labels: ["show-and-tell"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Show what you built with Remakecraft. Honest scores are the point: a clone at 40% with a clean wall log is welcome here.
+
+        To get it on the README scoreboard, also open a pull request with the wall log, parity report and licence scan. See [Submit a clone to the scoreboard](https://github.com/remakecraft/remakecraft/blob/main/CONTRIBUTING.md#submit-a-clone-to-the-scoreboard).
+  - type: input
+    id: clone
+    attributes:
+      label: Clone name and repo
+      description: The clone's own name, not the original's.
+      placeholder: "Brushling, https://github.com/remakecraft/brushling"
+    validations:
+      required: true
+  - type: input
+    id: familiar
+    attributes:
+      label: Familiar to users of
+      placeholder: "Microsoft Paint (Windows 98)"
+    validations:
+      required: true
+  - type: input
+    id: score
+    attributes:
+      label: Parity score
+      description: The overall number from `.remake/reports/parity.json`, sealed tests included.
+      placeholder: "0.62"
+    validations:
+      required: true
+  - type: textarea
+    id: run
+    attributes:
+      label: The run
+      description: Stack, Remakecraft version, builders, time and token cost if you tracked them, and what the wall caught.
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshot or clip
+      description: Drag images or video here. The clone only, please; no screenshots of the original's code.
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Checks
+      options:
+        - label: The original is not DRM, anti-cheat or security software.
+          required: true
+        - label: The clone uses its own name and icons, not the original's trademarks.
+          required: true

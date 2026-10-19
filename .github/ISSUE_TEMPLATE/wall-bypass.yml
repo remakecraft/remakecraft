@@ -1,0 +1,67 @@
+name: Wall hardening (no working bypasses)
+description: A hardening idea for the clean-room wall, or a bypass that is already fixed. Working bypasses go to SECURITY.md.
+title: "wall: "
+labels: ["wall", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Stop if you have a working bypass
+
+        If an agent in a run can get past the wall on the current release (read the room, read sealed tests, edit `tests/` or `spec/`, run a decompiler, reach a blocklisted implementation, or make the guard fail open), **do not post it here**.
+
+        **[Report it privately](https://github.com/remakecraft/remakecraft/security/advisories/new)** instead. [SECURITY.md](https://github.com/remakecraft/remakecraft/blob/main/SECURITY.md) explains what counts and what happens next.
+
+        This form is for hardening ideas, wall false positives (a legitimate call that got blocked), and bypasses that are already fixed in a release.
+  - type: checkboxes
+    id: not-a-live-bypass
+    attributes:
+      label: Confirmation
+      options:
+        - label: This is not a working bypass of the current release, or it has already been fixed and disclosed.
+          required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - Hardening idea
+        - False positive (the wall blocked a legitimate call)
+        - Already-fixed bypass (follow-up or regression test)
+    validations:
+      required: true
+  - type: dropdown
+    id: role
+    attributes:
+      label: Agent role involved
+      options:
+        - builder
+        - verifier
+        - reviewer
+        - observer
+        - spec-writer
+        - test-writer
+        - main session
+        - not role-specific
+    validations:
+      required: true
+  - type: textarea
+    id: detail
+    attributes:
+      label: Detail
+      description: The tool call or command, what the wall did, and what you think it should do.
+    validations:
+      required: true
+  - type: textarea
+    id: wall-log
+    attributes:
+      label: wall.log lines
+      description: From `.remake/wall.log`, if any.
+      render: json
+  - type: input
+    id: version
+    attributes:
+      label: Remakecraft version
+      placeholder: "0.1.0"
+    validations:
+      required: true
