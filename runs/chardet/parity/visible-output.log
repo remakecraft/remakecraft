@@ -1,0 +1,2 @@
+$ node "<plugin>/scripts/runners/node-suite.mjs" "<tmp>/remake-parity-ET9YLq/checkout/tests/visible" "<tmp>/remake-parity-ET9YLq/results/visible.report" --bin "bin/guessling.mjs"
+173/173 passed

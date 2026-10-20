@@ -1,0 +1,379 @@
+[
+  {
+    "id": "cli.invoke",
+    "priority": "must",
+    "layer": "ui",
+    "status": "passing",
+    "passed": 7,
+    "total": 7,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.stdin",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "Blocked: cli.stdin.dash_twice_large_repeats fails (no result for cp1251 sample) until single-byte detectors exist.",
+    "passed": 12,
+    "total": 12,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.stdin-tty-notice",
+    "priority": "could",
+    "layer": "ui",
+    "status": "passing",
+    "notes": "All visible tests pass after merge.",
+    "passed": 4,
+    "total": 4,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.help",
+    "priority": "should",
+    "layer": "ui",
+    "status": "passing",
+    "notes": "All 6 visible cli.help tests pass after merge.",
+    "passed": 10,
+    "total": 10,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.version",
+    "priority": "should",
+    "layer": "ui",
+    "status": "passing",
+    "notes": "Both visible cli.version tests pass after merge.",
+    "passed": 3,
+    "total": 3,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.minimal",
+    "priority": "must",
+    "layer": "ui",
+    "status": "passing",
+    "passed": 3,
+    "total": 3,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.legacy",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "Blocked: euc_kr_becomes_cp949, long_flag_same_as_short, other_names_unchanged, legacy_iso_thai_to_cp874, flag_after_files need CJK/single-byte detectors (and KOI8-U) that are not built yet.",
+    "passed": 11,
+    "total": 11,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.legacy-casing",
+    "priority": "must",
+    "layer": "format",
+    "status": "failing",
+    "notes": "Blocked: both_spellings_one_run, renamed_spelling, direct_spelling need Windows/ISO-8859 single-byte detectors.",
+    "passed": 3,
+    "total": 4,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.era-option",
+    "priority": "must",
+    "layer": "ui",
+    "status": "passing",
+    "notes": "Blocked: cli.era-option.short_flag_selects_era and cli.era-option.dos_versus_default still fail until the encoding detectors they depend on are built.",
+    "passed": 9,
+    "total": 9,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.era-value-parsing",
+    "priority": "should",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "Blocked: cli.era-value-parsing.lower_and_mixed_case and cli.era-value-parsing.last_value_wins still fail until the missing detectors are built.",
+    "passed": 4,
+    "total": 4,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.era-syntax",
+    "priority": "could",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "Blocked: cli.era-syntax.equals_form still fails until the missing detectors are built.",
+    "passed": 6,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.unknown-option",
+    "priority": "must",
+    "layer": "ui",
+    "status": "passing",
+    "passed": 3,
+    "total": 3,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.parsing-conveniences",
+    "priority": "could",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "Blocked: long_prefix and options_after_files need cp1251 / EUC-KR detectors.",
+    "passed": 6,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "cli.unopenable",
+    "priority": "must",
+    "layer": "ui",
+    "status": "passing",
+    "passed": 3,
+    "total": 3,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "output.result-line",
+    "priority": "must",
+    "layer": "format",
+    "status": "passing",
+    "passed": 7,
+    "total": 7,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "output.streams-exit",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "failing",
+    "passed": 5,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.input-limit",
+    "priority": "should",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "All visible tests pass after merge.",
+    "passed": 7,
+    "total": 7,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.bom",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "passed": 11,
+    "total": 11,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.unicode-no-bom",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "All visible tests pass after merge.",
+    "passed": 6,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.ascii",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "Staged pipeline v2; all visible tests pass.",
+    "passed": 6,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.ascii-esc",
+    "priority": "should",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "All visible tests pass after merge (stray-ESC rule reached via the scorer stage).",
+    "passed": 3,
+    "total": 3,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.empty-binary",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "Blocked: overlong_utf8 and overlong_utf8_era_all expect a single-byte name (WINDOWS-1250 / any) for overlong UTF-8; needs single-byte detectors.",
+    "passed": 9,
+    "total": 9,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.utf8",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "failing",
+    "notes": "Blocked: one_char_after_long_ascii expects WINDOWS-1252; needs single-byte detectors.",
+    "passed": 8,
+    "total": 9,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.utf8-invalid",
+    "priority": "should",
+    "layer": "behaviour",
+    "status": "passing",
+    "notes": "Blocked: era_all_single_byte_name expects a single-byte name for invalid UTF-8 under ALL; needs single-byte detectors.",
+    "passed": 9,
+    "total": 9,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.escape",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "passed": 9,
+    "total": 9,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.cjk",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "passed": 7,
+    "total": 7,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.era-modern-web",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "failing",
+    "passed": 9,
+    "total": 10,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.era-always-on",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "failing",
+    "passed": 5,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.era-legacy-iso",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "failing",
+    "passed": 5,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.era-legacy-mac",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "passed": 6,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.era-legacy-regional",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "passing",
+    "passed": 4,
+    "total": 4,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.era-dos",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "failing",
+    "passed": 5,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.era-mainframe",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "failing",
+    "passed": 5,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.era-all",
+    "priority": "must",
+    "layer": "behaviour",
+    "status": "failing",
+    "passed": 5,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.hebrew",
+    "priority": "should",
+    "layer": "behaviour",
+    "status": "passing",
+    "passed": 4,
+    "total": 4,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.thai",
+    "priority": "should",
+    "layer": "behaviour",
+    "status": "passing",
+    "passed": 4,
+    "total": 4,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.arabic",
+    "priority": "should",
+    "layer": "behaviour",
+    "status": "passing",
+    "passed": 6,
+    "total": 6,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.corpus-summary",
+    "priority": "should",
+    "layer": "behaviour",
+    "status": "failing",
+    "passed": 3,
+    "total": 4,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "library.api",
+    "priority": "could",
+    "layer": "behaviour",
+    "status": "passing",
+    "passed": 2,
+    "total": 2,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  },
+  {
+    "id": "detect.unprinted-names",
+    "priority": "could",
+    "layer": "format",
+    "status": "passing",
+    "passed": 7,
+    "total": 7,
+    "checkedAt": "2026-10-20T08:50:37.058Z"
+  }
+]

@@ -1,0 +1,818 @@
+{
+  "version": 1,
+  "at": "2026-10-20T08:50:37.058Z",
+  "app": "guessling",
+  "stack": "web",
+  "commit": "1b2b55b978c6ed2047e36620a078911bb2b57837",
+  "mode": {
+    "mode": "clean",
+    "rea": false,
+    "basis": null,
+    "label": "clean-room",
+    "reaItems": 0
+  },
+  "uncommitted": null,
+  "hashes": {
+    "ok": true,
+    "app": [],
+    "sealedChanged": 0
+  },
+  "stubs": {
+    "ok": true,
+    "scanned": 32,
+    "hits": [],
+    "emptyBodies": []
+  },
+  "build": {
+    "ran": true,
+    "ok": true,
+    "exitCode": 0,
+    "error": null
+  },
+  "suites": {
+    "visible": {
+      "ok": true,
+      "format": "junit",
+      "results": 173,
+      "unmatched": 0,
+      "exitCode": 0
+    },
+    "sealed": {
+      "ok": true,
+      "format": "junit",
+      "results": 78,
+      "unmatched": 0
+    }
+  },
+  "plantedSealedDir": false,
+  "score": {
+    "overall": 96,
+    "passed": 241,
+    "total": 251,
+    "visible": {
+      "passed": 173,
+      "total": 173,
+      "rate": 100
+    },
+    "sealed": {
+      "passed": 68,
+      "total": 78,
+      "rate": 87.1
+    }
+  },
+  "layers": {
+    "behaviour": {
+      "visible": {
+        "passed": 131,
+        "total": 131,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 51,
+        "total": 60,
+        "rate": 85
+      },
+      "overall": 95.2,
+      "total": 191
+    },
+    "pixel": {
+      "visible": {
+        "passed": 0,
+        "total": 0,
+        "rate": null
+      },
+      "sealed": {
+        "passed": 0,
+        "total": 0,
+        "rate": null
+      },
+      "overall": null,
+      "total": 0
+    },
+    "format": {
+      "visible": {
+        "passed": 13,
+        "total": 13,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 4,
+        "total": 5,
+        "rate": 80
+      },
+      "overall": 94.4,
+      "total": 18
+    },
+    "ui": {
+      "visible": {
+        "passed": 29,
+        "total": 29,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 13,
+        "total": 13,
+        "rate": 100
+      },
+      "overall": 100,
+      "total": 42
+    }
+  },
+  "features": [
+    {
+      "id": "cli.invoke",
+      "layer": "ui",
+      "priority": "must",
+      "visible": {
+        "passed": 5,
+        "total": 5,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.stdin",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 8,
+        "total": 8,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.stdin-tty-notice",
+      "layer": "ui",
+      "priority": "could",
+      "visible": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.help",
+      "layer": "ui",
+      "priority": "should",
+      "visible": {
+        "passed": 7,
+        "total": 7,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.version",
+      "layer": "ui",
+      "priority": "should",
+      "visible": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.minimal",
+      "layer": "ui",
+      "priority": "must",
+      "visible": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.legacy",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 8,
+        "total": 8,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.legacy-casing",
+      "layer": "format",
+      "priority": "must",
+      "visible": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 0,
+        "total": 1,
+        "rate": 0
+      },
+      "overall": 75,
+      "overfit": true
+    },
+    {
+      "id": "cli.era-option",
+      "layer": "ui",
+      "priority": "must",
+      "visible": {
+        "passed": 6,
+        "total": 6,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.era-value-parsing",
+      "layer": "behaviour",
+      "priority": "should",
+      "visible": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.era-syntax",
+      "layer": "behaviour",
+      "priority": "could",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.unknown-option",
+      "layer": "ui",
+      "priority": "must",
+      "visible": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.parsing-conveniences",
+      "layer": "behaviour",
+      "priority": "could",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "cli.unopenable",
+      "layer": "ui",
+      "priority": "must",
+      "visible": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "output.result-line",
+      "layer": "format",
+      "priority": "must",
+      "visible": {
+        "passed": 5,
+        "total": 5,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "output.streams-exit",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 2,
+        "rate": 50
+      },
+      "overall": 83.3,
+      "overfit": true
+    },
+    {
+      "id": "detect.input-limit",
+      "layer": "behaviour",
+      "priority": "should",
+      "visible": {
+        "passed": 5,
+        "total": 5,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.bom",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 8,
+        "total": 8,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.unicode-no-bom",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.ascii",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.ascii-esc",
+      "layer": "behaviour",
+      "priority": "should",
+      "visible": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.empty-binary",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 6,
+        "total": 6,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.utf8",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 6,
+        "total": 6,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 3,
+        "rate": 66.6
+      },
+      "overall": 88.8,
+      "overfit": true
+    },
+    {
+      "id": "detect.utf8-invalid",
+      "layer": "behaviour",
+      "priority": "should",
+      "visible": {
+        "passed": 6,
+        "total": 6,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.escape",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 6,
+        "total": 6,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.cjk",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 5,
+        "total": 5,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.era-modern-web",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 7,
+        "total": 7,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 3,
+        "rate": 66.6
+      },
+      "overall": 90,
+      "overfit": true
+    },
+    {
+      "id": "detect.era-always-on",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 2,
+        "rate": 50
+      },
+      "overall": 83.3,
+      "overfit": true
+    },
+    {
+      "id": "detect.era-legacy-iso",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 2,
+        "rate": 50
+      },
+      "overall": 83.3,
+      "overfit": true
+    },
+    {
+      "id": "detect.era-legacy-mac",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.era-legacy-regional",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.era-dos",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 2,
+        "rate": 50
+      },
+      "overall": 83.3,
+      "overfit": true
+    },
+    {
+      "id": "detect.era-mainframe",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 2,
+        "rate": 50
+      },
+      "overall": 83.3,
+      "overfit": true
+    },
+    {
+      "id": "detect.era-all",
+      "layer": "behaviour",
+      "priority": "must",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 2,
+        "rate": 50
+      },
+      "overall": 83.3,
+      "overfit": true
+    },
+    {
+      "id": "detect.hebrew",
+      "layer": "behaviour",
+      "priority": "should",
+      "visible": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.thai",
+      "layer": "behaviour",
+      "priority": "should",
+      "visible": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.arabic",
+      "layer": "behaviour",
+      "priority": "should",
+      "visible": {
+        "passed": 4,
+        "total": 4,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.corpus-summary",
+      "layer": "behaviour",
+      "priority": "should",
+      "visible": {
+        "passed": 3,
+        "total": 3,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 0,
+        "total": 1,
+        "rate": 0
+      },
+      "overall": 75,
+      "overfit": true
+    },
+    {
+      "id": "library.api",
+      "layer": "behaviour",
+      "priority": "could",
+      "visible": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 1,
+        "total": 1,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    },
+    {
+      "id": "detect.unprinted-names",
+      "layer": "format",
+      "priority": "could",
+      "visible": {
+        "passed": 5,
+        "total": 5,
+        "rate": 100
+      },
+      "sealed": {
+        "passed": 2,
+        "total": 2,
+        "rate": 100
+      },
+      "overall": 100,
+      "overfit": false
+    }
+  ],
+  "overfit": [
+    "cli.legacy-casing",
+    "output.streams-exit",
+    "detect.utf8",
+    "detect.era-modern-web",
+    "detect.era-always-on",
+    "detect.era-legacy-iso",
+    "detect.era-dos",
+    "detect.era-mainframe",
+    "detect.era-all",
+    "detect.corpus-summary"
+  ],
+  "visibleFailures": [],
+  "exitCode": 0,
+  "ok": true
+}

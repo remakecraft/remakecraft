@@ -117,6 +117,7 @@ One number per clone, then the layers. Sealed tests count. Nothing is rounded up
 | Clone | Behaves like | Stack | **Parity** | UI | Behaviour | File formats | Sealed pass | Tests | Wall time | Cost | |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | [Brushling](https://github.com/remakecraft/brushling) | Windows 98-era Paint | Rust + egui | **99.7%** | 100% | 99.6% | 100% | 154/154 | 471 | 2 h 56 min | $41.08 | |
+| guessling ([run record](runs/chardet)) | chardet 6.0.0, the encoding detector | Node | **96.0%** | 100% | 95.2% | 94.4% | 68/78 | 251 | 4 h 22 min | $74.68 | |
 | Sweepling | XP-era Minesweeper | Rust + egui | **100%** | 100% | 100% | 100% | 78/78 | 265 | 2 h 40 min | $30.50 | |
 | tally (toy, bundled in [`evals/fixtures`](evals/fixtures/toy-original)) | a 50-line command-line counter | Node | **97.9%** | n/a | 97.8% | 100% | 72/74 | 191 | 35 min | $6.29 | `/remakecraft:try` |
 | tally, `--with-rea` | the same counter, observer using REA | Node | **100%** | 100% | 100% | 100% | 33/33 | 108 | 29 min | $6.58 | `/remakecraft:try --with-rea` |
