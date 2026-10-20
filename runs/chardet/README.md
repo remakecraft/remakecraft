@@ -80,4 +80,4 @@ won't match the scrubbed text of `audit.log` prompts.
   the visible samples and generalises worst.
 - The run found six plugin bugs (unescaped regex in the guard, unreadable tool-output spill files, no shared
   scratch folder, builders sent to a report they may not read, user-level plugins visible to clean roles, and `/`
-  or `[a-z-]*` read as paths). Fixes are going into v0.1.2.
+  or `[a-z-]*` read as paths). [v0.1.2](https://github.com/remakecraft/remakecraft/releases/tag/v0.1.2) fixes five; the user-plugin one comes from Claude Code and is documented with a workaround.
