@@ -24,6 +24,16 @@ const REPLY = {
 const replyWith = (shape) => ` End your reply with this JSON on one line: ${shape}`;
 
 /**
+ * The must-fix findings for one feature, as its builder prompt carries them.
+ * A builder's reads stay inside its worktree, so it cannot open the main tree's
+ * .remake/reports/; the prompt is how a finding reaches it. Same words as workflows/build.js.
+ */
+export const findingsFor = (id, list) => {
+  const mine = (list || []).filter((f) => f && f.feature === id).map((f) => String(f.finding ?? "").trim()).filter(Boolean);
+  return mine.length ? ` Fix these must-fix review findings first: ${mine.map((f, i) => `(${i + 1}) ${f}`).join(" ")} This is all of the review you get: the reports stay in the main tree, outside your worktree.` : "";
+};
+
+/**
  * The loop's steps for a run. Prompts up to replyWith() are word for word the
  * workflow's; the merger leaves out the workflow's pause check, because the
  * orchestrator runs `control.mjs wait resume` itself before every batch.
@@ -37,12 +47,12 @@ export function buildSteps(manifest, { root = PLUGIN_ROOT, only = [] } = {}) {
     builders: manifest.cheap ? 1 : Math.max(1, Math.min(5, manifest.builders ?? 3)),
     rounds: ROUNDS,
     only,
-    plan: `Read .remake/progress/features.json and .remake/reports/review.md if present. Take the ids of features that are not yet passing, must-fix review items first, then must, should, could.${only.length ? ` Consider only these ids: ${only.join(", ")}.` : ""}`,
+    plan: `Read .remake/progress/features.json and .remake/reports/review.md if present. Take the ids of features that are not yet passing, must-fix review items first, then must, should, could.${only.length ? ` Consider only these ids: ${only.join(", ")}.` : ""} Note every must-fix finding in review.md with its feature id.`,
     wait: `${control} wait resume`,
     status: `${control} status`,
     builder: {
       agentType: "remakecraft:builder", model: builderModel, isolation: "worktree",
-      prompt: (id) => `Build feature ${id}. Branch name: remake/${id}. Return the branch and whether its visible tests pass.${replyWith(REPLY.builder)}`,
+      prompt: (id, mustFix = []) => `Build feature ${id}. Branch name: remake/${id}. Return the branch and whether its visible tests pass.${findingsFor(id, mustFix)}${replyWith(REPLY.builder)}`,
     },
     merger: {
       agentType: "remakecraft:merger", model: builderModel,
@@ -85,6 +95,8 @@ export function describeSteps(s) {
     `2 Build. Split the ids into batches of ${s.builders}. Per batch, spawn one builder per feature, all in one message so they run in parallel:`,
     `  ${agentLine(s.builder)}`,
     `  prompt: ${s.builder.prompt("<id>")}`,
+    `  When review.md or the last review's mustFix has findings for that id, add them before the reply line: ${findingsFor("<id>", [{ feature: "<id>", finding: "<finding>" }]).trim()}`,
+    "  Never tell a builder to read review.md or anything else in .remake/reports/: from its worktree the wall denies it.",
     `  For each reply with visiblePass false, say "${s.log.notPassing("<id>", "<blocker>")}".`,
     "",
     "3 Merge. When the batch has passing branches, spawn the merger once for all of them:",
@@ -100,7 +112,7 @@ export function describeSteps(s) {
     "5 Review.",
     `  ${agentLine(s.reviewer)}`,
     `  prompt: ${s.reviewer.prompt}`,
-    `  Say "${s.log.mustFix("<round>", "<n>")}". Must-fix findings are built first next round.`,
+    `  Say "${s.log.mustFix("<round>", "<n>")}". Must-fix findings are built first next round, each in its feature's builder prompt.`,
     "",
     `Then the next round, from step 1, up to round ${s.rounds}.`,
     "",

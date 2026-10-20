@@ -16,13 +16,21 @@ import { ROOM_MARK, readModes } from "./wall.mjs";
 function readRunAt(dir) {
   const file = path.join(dir, "remake.json");
   if (!existsSync(file)) return null;
-  // A broken manifest must not silently drop the wall: let the caller fail closed.
-  const cfg = JSON.parse(readFileSync(file, "utf8"));
-  if (cfg.blocked !== undefined && !Array.isArray(cfg.blocked))
-    throw new Error(`${file}: "blocked" must be an array of strings`);
-  const modes = readModes(cfg, file);
   const root = dir.replace(/\\/g, "/");
-  return { root, logRoot: mainTreeOf(dir) || root, blocked: cfg.blocked || [], app: cfg.app || path.basename(dir), ...modes };
+  const logRoot = mainTreeOf(dir) || root;
+  try {
+    // Windows editors and PowerShell's Set-Content -Encoding utf8 write a byte order mark.
+    const cfg = JSON.parse(readFileSync(file, "utf8").replace(/^﻿/, ""));
+    if (cfg.blocked !== undefined && !Array.isArray(cfg.blocked))
+      throw new Error(`${file}: "blocked" must be an array of strings`);
+    const modes = readModes(cfg, file);
+    return { root, logRoot, blocked: cfg.blocked || [], app: cfg.app || path.basename(dir), ...modes };
+  } catch (err) {
+    // A broken manifest must not silently drop the wall: the caller fails
+    // closed, and logs the denial in the run it could not read.
+    err.run = { root, logRoot };
+    throw err;
+  }
 }
 
 /**

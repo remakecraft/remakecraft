@@ -17,7 +17,8 @@ const ROUNDS = args?.rounds ?? 3
 const BUILD_MODEL = args?.models?.builder ?? 'sonnet'
 const REVIEW_MODEL = args?.cheap ? 'sonnet' : (args?.models?.reviewer ?? 'opus')
 
-const PENDING = { type: 'object', properties: { features: { type: 'array', items: { type: 'string' } }, paused: { type: 'boolean' }, budget: { type: 'boolean' } }, required: ['features'] }
+const FINDING = { type: 'object', properties: { feature: { type: 'string' }, finding: { type: 'string' } }, required: ['feature', 'finding'] }
+const PENDING = { type: 'object', properties: { features: { type: 'array', items: { type: 'string' } }, mustFix: { type: 'array', items: FINDING }, paused: { type: 'boolean' }, budget: { type: 'boolean' } }, required: ['features'] }
 const GATE = { type: 'object', properties: { paused: { type: 'boolean' }, budget: { type: 'boolean' } }, required: ['paused'] }
 
 // Pause from the run page lands between batches: builders already running finish their feature.
@@ -58,20 +59,30 @@ const VERDICT = {
 }
 const REVIEW = {
   type: 'object',
-  properties: { mustFix: { type: 'array', items: { type: 'object', properties: { feature: { type: 'string' }, finding: { type: 'string' } }, required: ['feature', 'finding'] } } },
+  properties: { mustFix: { type: 'array', items: FINDING } },
   required: ['mustFix'],
+}
+
+// A builder's reads stay inside its worktree, so it cannot open the main tree's
+// .remake/reports/. The must-fix findings for a feature travel in its prompt.
+const FINDINGS = ' Also return mustFix: every must-fix finding in review.md, each with its feature id and the finding in a sentence or two.'
+const findingsFor = (id, list) => {
+  const mine = (list || []).filter(f => f && f.feature === id).map(f => String(f.finding ?? '').trim()).filter(Boolean)
+  return mine.length ? ` Fix these must-fix review findings first: ${mine.map((f, i) => `(${i + 1}) ${f}`).join(' ')} This is all of the review you get: the reports stay in the main tree, outside your worktree.` : ''
 }
 
 let last = null
 let outOfBudget = false
+let mustFix = []
 for (let round = 1; round <= ROUNDS && !outOfBudget; round++) {
   phase('Plan')
   const only = args?.only?.length ? ` Consider only these ids: ${args.only.join(', ')}.` : ''
   const pending = await agent(
-    `Read .remake/progress/features.json and .remake/reports/review.md if present. Return the ids of features that are not yet passing, must-fix review items first, then must, should, could.${only}${PAUSE_CHECK}`,
+    `Read .remake/progress/features.json and .remake/reports/review.md if present. Return the ids of features that are not yet passing, must-fix review items first, then must, should, could.${only}${FINDINGS}${PAUSE_CHECK}`,
     { agentType: 'remakecraft:verifier', schema: PENDING, label: `plan r${round}` },
   )
   if (!pending.features.length) { log('Nothing left to build.'); break }
+  if (Array.isArray(pending.mustFix)) mustFix = pending.mustFix
   if (await holdWhilePaused(pending)) { log(BUDGET_STOP); outOfBudget = true; break }
 
   const batches = []
@@ -79,7 +90,7 @@ for (let round = 1; round <= ROUNDS && !outOfBudget; round++) {
 
   for (const batch of batches) {
     const built = await parallel(batch.map(id => () => agent(
-      `Build feature ${id}. Branch name: remake/${id}. Return the branch and whether its visible tests pass.`,
+      `Build feature ${id}. Branch name: remake/${id}. Return the branch and whether its visible tests pass.${findingsFor(id, mustFix)}`,
       { agentType: 'remakecraft:builder', isolation: 'worktree', model: BUILD_MODEL, phase: 'Build', label: id, schema: BUILT },
     )))
     const ready = built.filter(b => b && b.visiblePass)
@@ -101,7 +112,8 @@ for (let round = 1; round <= ROUNDS && !outOfBudget; round++) {
   const review = await agent('Review the work merged since the last review, then tag HEAD remake-reviewed.', {
     agentType: 'remakecraft:reviewer', model: REVIEW_MODEL, phase: 'Review', label: `review r${round}`, schema: REVIEW,
   })
-  log(`Round ${round}: ${review.mustFix.length} must-fix findings`)
+  mustFix = review.mustFix || []
+  log(`Round ${round}: ${mustFix.length} must-fix findings`)
 }
 
 return outOfBudget ? { ...(last || {}), stopped: 'budget' } : last

@@ -27,7 +27,7 @@ Rules that survive compaction, in priority order:
   remake.json                run manifest: app, stack, mode, commands, blocked terms, mcpAllow (tracked)
   spec/spec.json, spec.md    published spec (copied from the room after approval)
   tests/visible/             visible conformance tests
-  .remake/                   gitignored: progress/, reports/, wall.log, audit.log, local.json
+  .remake/                   gitignored: progress/, reports/, tmp/, wall.log, audit.log, local.json
 <out>/<app>.remake-room/     the room: evidence/, original/, inventory.json, spec/, tests/, sealed/, hashes.json
 ```
 
@@ -46,7 +46,7 @@ Modes: start clean unless the user asks for `--with-rea` or `--open`. Both need 
 - [ ] **4 Pilot.** Build 10 `must` features (step 5 limited to them), verify, and report tokens, time and pass rates per feature. Extrapolate the full run and ask the user to continue.
 - [ ] **5 Build.** Pick the next unbuilt features from `.remake/progress/features.json`. Spawn `remakecraft:builder` per feature with `isolation: worktree`, up to `builders` at once (1 in cheap mode). Spawn `remakecraft:merger` to merge the passing branches; do not merge them in this session, which is not on the clean side. Before each batch run `node "${CLAUDE_PLUGIN_ROOT}/scripts/control.mjs" wait resume --app <out>/<app>`; while it exits 5 the user has paused the run, so run it again. Exit 7 means the budget is spent: stop and show its message, which says how to resume.
 - [ ] **6 Verify.** Spawn `remakecraft:verifier` after each merge batch. Its prompt gives the app tree and the plugin root, never the room: parity.mjs finds the sealed tests itself, and the wall refuses a clean-role prompt that names the room. A hash mismatch (parity exit 3) or stub hit (exit 4) stops the run.
-- [ ] **7 Review.** Spawn `remakecraft:reviewer` every batch. Send must-fix findings back to step 5 as new work.
+- [ ] **7 Review.** Spawn `remakecraft:reviewer` every batch. Send must-fix findings back to step 5 as new work: paste each finding into its feature's builder prompt. Never tell a builder to read `review.md` or anything else in `.remake/reports/`: a builder's reads stay inside its worktree, so the wall denies it the main tree's reports.
 - [ ] **8 Report.** When the score stops rising or the user stops, show the parity table from `.remake/reports/parity.json` and the wall log count.
 
 When the Workflow tool is available, run the `/remakecraft:build` workflow for phases 5 to 7 (pass `only` with the pilot ids in phase 4, and `pluginRoot` set to `${CLAUDE_PLUGIN_ROOT}` so the agents get an absolute path) instead of driving them by hand. It cannot take input mid-run, so do the human checkpoint in phase 2 first. Headless `claude -p` stops background work 10 minutes after its last turn, which kills the workflow mid-build; headless runs need `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`.

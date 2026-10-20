@@ -178,6 +178,8 @@ export function initRun(argv) {
     for (const d of ROOM_DIRS) mkdirSync(path.join(room, d), { recursive: true });
     mkdirSync(path.join(root, ".remake", "progress"), { recursive: true });
     mkdirSync(path.join(root, ".remake", "reports"), { recursive: true });
+    // The clean roles' scratch dir; room roles use the room or the session scratchpad.
+    mkdirSync(path.join(root, ".remake", "tmp"), { recursive: true });
 
     writeJson(path.join(root, "remake.json"), manifest);
     writeFileSync(path.join(root, ".gitignore"), [".remake/", ".claude/worktrees/", ".claude/settings.local.json", ...stack.ignore].join("\n") + "\n");

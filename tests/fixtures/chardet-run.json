@@ -1,0 +1,177 @@
+[
+  {
+    "id": "guard-1",
+    "role": "reviewer",
+    "why": "guard failed: Range out of order",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app} && mkdir -p .remake/tmp/at-c613220 && git archive c613220 src | tar -x -C .remake/tmp/at-c613220 && node -e \"\nconst fs=require('fs');for(const f of ['probe-b3.mjs','probe-b3c.mjs','probe-b3d.mjs']){const t=fs.readFileSync('.remake/tmp/'+f,'utf8').replaceAll('../../src/','./at-c613220/src/');fs.writeFileSync('.remake/tmp/old-'+f,t)}\" && ls .remake/tmp/at-c613220/src/detect/sbcs",
+      "description": "Extract c613220 sources for scoped probes"
+    }
+  },
+  {
+    "id": "guard-2",
+    "role": "builder",
+    "why": "guard failed: Range out of order",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-a6dca4921ed9b5677 && node -v && node -e '\nconst labels=[\"windows-1250\",\"windows-1251\",\"windows-1252\",\"windows-1253\",\"windows-1254\",\"windows-1255\",\"windows-1256\",\"windows-1257\",\"windows-1258\",\"windows-874\",\"koi8-r\",\"koi8-u\",\"iso-8859-2\",\"iso-8859-7\",\"macintosh\",\"x-mac-cyrillic\",\"ibm866\"];\nfor(const l of labels){const d=new TextDecoder(l,{fatal:true});let undef=[],s=\"\";for(let b=0x80;b<256;b++){try{const c=d.decode(new Uint8Array([b]));s+=c}catch{undef.push(b.toString(16));s+=\"?\"}}console.log(l,undef.join(\",\"),JSON.stringify(s.slice(0,40)))}\n'"
+    }
+  },
+  {
+    "id": "guard-3",
+    "role": "reviewer",
+    "why": "guard failed: Range out of order",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app} && node -e \"const s=require('./spec/spec.json');const ids=['cli.stdin','cli.stdin-tty-notice','cli.help','cli.legacy','cli.legacy-casing','detect.input-limit','detect.unicode-no-bom','detect.ascii','detect.ascii-esc','detect.empty-binary','detect.utf8','detect.utf8-invalid','library.api'];for(const f of s.features)if(ids.includes(f.id))console.log(JSON.stringify(f,null,1));console.log(JSON.stringify(s.changes_from_v1,null,1))\" > .scratch/spec-sub.txt; wc -l .scratch/spec-sub.txt",
+      "description": "Extract relevant spec features to scratch"
+    }
+  },
+  {
+    "id": "guard-4",
+    "role": "builder",
+    "why": "guard failed: Range out of order",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-aa608d94af9995976 && node -e \"for (const l of ['macintosh','x-mac-cyrillic','x-mac-greek','x-mac-turkish','x-mac-icelandic','x-mac-ce','x-mac-roman']) { try { const d=new TextDecoder(l); console.log(l,'ok',d.decode(Uint8Array.of(0xa0,0xd0))) } catch(e) { console.log(l,'no') } }\""
+    }
+  },
+  {
+    "id": "guard-5",
+    "role": "builder",
+    "why": "guard failed: Range out of order",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-afa1e62077fc81d45 && node -e \"\nconst fs=require('fs');const f='src/detect/sbcs/pages.mjs';let t=fs.readFileSync(f,'utf8');\nconst rep=(a,b)=>{if(!t.includes(a))throw new Error(a);t=t.replace(a,b)};\nrep('\\\"ISO-8859-1\\\": { chars: ISO_CHARTS[\\\"ISO-8859-1\\\"], prior: -0.3 }','\\\"ISO-8859-1\\\": { chars: ISO_CHARTS[\\\"ISO-8859-1\\\"], c1: \\\"windows-1252\\\", prior: -0.3 }');\nrep('\\\"ISO-8859-2\\\": { label: \\\"iso-8859-2\\\" }','\\\"ISO-8859-2\\\": { label: \\\"iso-8859-2\\\", c1: \\\"windows-1250\\\" }');\nrep('\\\"ISO-8859-6\\\": { label: \\\"iso-8859-6\\\" }','\\\"ISO-8859-6\\\": { label: \\\"iso-8859-6\\\", c1: \\\"windows-1256\\\" }');\nrep('\\\"ISO-8859-7\\\": { label: \\\"iso-8859-7\\\" }','\\\"ISO-8859-7\\\": { label: \\\"iso-8859-7\\\", c1: \\\"windows-1253\\\" }');\nrep('\\\"ISO-8859-9\\\": { chars: ISO_CHARTS[\\\"ISO-8859-9\\\"] }','\\\"ISO-8859-9\\\": { chars: ISO_CHARTS[\\\"ISO-8859-9\\\"], c1: \\\"windows-1254\\\", prior: -0.5 }');\nrep('\\\"ISO-8859-11\\\": { chars: ISO_CHARTS[\\\"ISO-8859-11\\\"] }','\\\"ISO-8859-11\\\": { chars: ISO_CHARTS[\\\"ISO-8859-11\\\"], c1: \\\"windows-874\\\" }');\nrep('\\\"ISO-8859-13\\\": { label: \\\"iso-8859-13\\\" }','\\\"ISO-8859-13\\\": { label: \\\"iso-8859-13\\\", c1: \\\"windows-1257\\\" }');\nrep('\\\"ISO-8859-15\\\": { label: \\\"iso-8859-15\\\" }','\\\"ISO-8859-15\\\": { label: \\\"iso-8859-15\\\", c1: \\\"windows-1252\\\", prior: 0.05 }');\nfs.writeFileSync(f,t);\n\" && node .scratch/probe.mjs LEGACY_ISO"
+    }
+  },
+  {
+    "id": "17",
+    "role": "reviewer",
+    "why": "may read only its own tree (spill file)",
+    "tool": "Read",
+    "input": {
+      "file_path": "{projects}/e90f6cf1-3178-4e07-9b79-aaabb04be918/tool-results/b3isvu6ty.txt"
+    }
+  },
+  {
+    "id": "26",
+    "role": "builder",
+    "why": "may read only its own tree (spill file)",
+    "tool": "Read",
+    "input": {
+      "file_path": "{projects}/e90f6cf1-3178-4e07-9b79-aaabb04be918/tool-results/byysn7egp.txt"
+    }
+  },
+  {
+    "id": "5",
+    "role": "builder",
+    "why": "is in the run logs (.remake/tmp-before.txt)",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-ac8f0d58fa7733135 && cat remake.json | head -30; node -e \"const s=require('./spec/spec.json');const f=(s.features||s).find?.(x=>x.id==='cli.unopenable');console.log(JSON.stringify(f,null,1))\"; ls tests/visible | head -20; cat src/input.mjs src/cli.mjs; node scripts/run-suite.mjs tests/visible --bin bin/guessling.mjs > .remake/tmp-before.txt 2>&1; tail -5 .remake/tmp-before.txt"
+    }
+  },
+  {
+    "id": "6",
+    "role": "builder",
+    "why": "is in the run logs (.remake/tmp-before.txt)",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-a15af71ee8d2ea9c6 && cat remake.json | head -30; cat src/detect/ascii.mjs src/detect/index.mjs; grep -n '\"detect.ascii\"' -A40 spec/spec.json | head -80; ls tests/visible | head -30; node scripts/run-suite.mjs tests/visible --bin bin/guessling.mjs > .remake/tmp-before.txt 2>&1; tail -5 .remake/tmp-before.txt"
+    }
+  },
+  {
+    "id": "9",
+    "role": "merger",
+    "why": "is in the run logs (ls .remake)",
+    "tool": "Bash",
+    "input": {
+      "command": "mkdir -p {app}/.remake/tmp && ls {app}/.remake {app}/scripts"
+    }
+  },
+  {
+    "id": "18",
+    "role": "builder",
+    "why": "is in the run logs (ls .remake)",
+    "tool": "Bash",
+    "input": {
+      "command": "cd \"{app}/.claude/worktrees/agent-aa514c056e3d5a3f4\" && for f in src/detect/*.mjs src/cli.mjs; do echo \"=== $f\"; cat $f; done; ls .remake .remake/reports tests/visible/lib scripts; mkdir -p .scratch"
+    }
+  },
+  {
+    "id": "19",
+    "role": "builder",
+    "why": "is in the run logs (ls .remake)",
+    "tool": "Bash",
+    "input": {
+      "command": "cd \"{app}/.claude/worktrees/agent-a9a2747f64f7dfbce\" && cat src/detect/index.mjs src/detect/ascii.mjs src/detect/eras.mjs src/detect/bom.mjs src/detect/koi8r.mjs; ls -a . .remake 2>&1 | head -30; ls tests/visible/lib scripts"
+    }
+  },
+  {
+    "id": "21",
+    "role": "builder",
+    "why": "is in the run logs (ls .remake)",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-a9f5c10c69e107e6f && sed -n 1,80p scripts/run-suite.mjs; ls .remake 2>&1"
+    }
+  },
+  {
+    "id": "20",
+    "role": "builder",
+    "why": "is above its tree / run logs",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-a9f5c10c69e107e6f && ls ../../../.remake/reports ../../../../guessling/.remake 2>&1 | head; grep -n \"legacy\\|tty\\|parsing-conv\\|cli.stdin\" spec/spec.json | head -40"
+    }
+  },
+  {
+    "id": "22",
+    "role": "reviewer",
+    "why": "may not start another agent (codex --version)",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app} && mkdir -p .scratch .remake/reports && git diff 0f457e0..HEAD > .remake/reports/review.diff && git diff --stat 0f457e0..HEAD | tail -30 && cat .gitignore && codex --version",
+      "description": "Save diff and show stats"
+    }
+  },
+  {
+    "id": "27",
+    "role": "reviewer",
+    "why": "may not start another agent (codex --version)",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app} && git rev-parse --short remake-reviewed; git diff ecb7ae9..HEAD > .remake/reports/review.diff; wc -l .remake/reports/review.diff; codex --version; mkdir -p .scratch && echo ok; git check-ignore .scratch",
+      "description": "Check tag, save diff, codex version, scratch dir"
+    }
+  },
+  {
+    "id": "14",
+    "role": "merger",
+    "why": "pattern that matches the room ([a-z-]*)",
+    "tool": "Bash",
+    "input": {
+      "command": "grep -o '\"status\": \"[a-z-]*\"' .remake/progress/features.json | sort | uniq -c; grep -n '\"note' .remake/progress/features.json | head -3; grep -B3 -A3 merged .remake/progress/features.json | head -20"
+    }
+  },
+  {
+    "id": "25",
+    "role": "builder",
+    "why": "/ is above its tree",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-a9c2ed4db3c7fe1ce && node -e \"\nconst f=p=>{const x=require('fs').readFileSync(p,'utf8').split(/<testcase /).slice(1);return new Set(x.filter(s=>/^[^>]*>[\\s\\S]*?<failure/.test(s.split('</testcase>')[0])&&!/^[^>]*\\/>/.test(s)).map(s=>s.match(/name=\\\"([^\\\"]*)\\\"/)[1]))};\nconst b=f('.scratch/before.xml'),a=f('.scratch/after.xml');\nconsole.log(b.size,a.size,[...a].filter(x=>!b.has(x)),[...b].filter(x=>!a.has(x)))\""
+    }
+  },
+  {
+    "id": "29",
+    "role": "builder",
+    "why": "/ is above its tree",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-afa1e62077fc81d45 && node .scratch/probe.mjs LEGACY_ISO \"/(de|fr|cs|pl|ru|el|tr|lt|th|ar|is|he|en|edge|ko|uk|bg)/(utf-8|cp|lat|iso|mac|tis|sin|koi|johab|single|euc|big|gb|shift)\" 2>&1 | grep -v \"ascii\\|UTF-\\|utf-\""
+    }
+  }
+]
