@@ -86,6 +86,35 @@ test("the fallback spawns the workflow's agents, in its order, with its prompts 
   ]);
 });
 
+// Chardet run, v0.1.0: the orchestrator told builders to read
+// .remake/reports/review.md, which the wall denies them (wall.log #18-21, #24).
+test("must-fix findings reach the builder in its prompt, never as a file to read", async () => {
+  const steps = buildSteps(MANIFEST, { root: ROOT });
+  const finding = { feature: "calc.mul", finding: "mul uses a lookup table for 0-9; compute it" };
+  let plans = 0;
+  const { calls } = await runWorkflow(ARGS, (p, o, c) => {
+    if (o.label?.startsWith("plan")) {
+      plans++;
+      // Round 1 is a resume: the plan agent read the findings from an earlier session's review.md.
+      if (plans === 1) return { features: ["calc.mul"], mustFix: [finding, { feature: "calc.add", finding: "not in this batch" }] };
+      return { features: plans === 2 ? ["calc.mul"] : [] };
+    }
+    if (o.agentType === "remakecraft:reviewer") return { mustFix: [{ ...finding, finding: "carry is dropped above 9" }] };
+    if (o.label === "pause check") return { paused: false };
+    return happyPath(p, o, c);
+  });
+  const builds = calls.filter((c) => c.agentType === "remakecraft:builder");
+  assert.equal(builds.length, 2);
+  assert.match(builds[0].prompt, /\(1\) mul uses a lookup table for 0-9; compute it This is all of the review you get/);
+  assert.doesNotMatch(builds[0].prompt, /not in this batch/, "only the feature's own findings");
+  assert.match(builds[1].prompt, /\(1\) carry is dropped above 9/, "the last review's findings feed the next round");
+  for (const [b, list] of [[builds[0], [finding]], [builds[1], [{ ...finding, finding: "carry is dropped above 9" }]]])
+    assertSamePrompt(steps.builder.prompt("calc.mul", list), b.prompt, "builder with findings");
+  for (const c of calls) assert.doesNotMatch(c.agentType === "remakecraft:builder" ? c.prompt : "", /read[^.]*review\.md/i, "no builder is sent to review.md");
+  assert.match(calls.find((c) => c.label === "plan r1").prompt, /Also return mustFix/);
+  assert.equal(steps.builder.prompt("calc.add"), steps.builder.prompt("calc.add", [finding]), "no findings, no extra words");
+});
+
 test("the fallback stops where the workflow stops", async () => {
   const steps = buildSteps(MANIFEST, { root: ROOT });
 

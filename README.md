@@ -36,7 +36,7 @@ For your own apps, abandoned software, interoperability and learning. Read [Resp
 <p align="center">
   <a href="https://github.com/remakecraft/remakecraft/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/remakecraft/remakecraft/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
-  <a href=".claude-plugin/plugin.json"><img alt="Version 0.1.1" src="https://img.shields.io/badge/version-0.1.1-informational"></a>
+  <a href=".claude-plugin/plugin.json"><img alt="Version 0.1.2" src="https://img.shields.io/badge/version-0.1.2-informational"></a>
   <img alt="Status: early alpha" src="https://img.shields.io/badge/status-early%20alpha-orange">
 </p>
 
@@ -85,7 +85,9 @@ A run has two trees. The **app tree** (`<app>/`) holds the spec, the visible tes
 | Clean-side shell calls that start a known agent CLI by name (`claude`, `codex`, `gemini` and the like) are denied, except the reviewer's Codex call, which runs under a read-only-app-tree profile (`reviewer.md`); the hook checks that the flag is present | clean side |
 | Builders' and the merger's Write and Edit calls can't touch `tests/`, `spec/` or `remake.json`; a shell edit fails the hash check at the next verify. Hashes are checked by the verifier after each build round, and again after the build and the test run | builders, merger |
 
-The hook is **a logged tripwire against accidental crossing, not a sandbox** (see [Limits](#limits)). It **fails closed** inside a run once it has found the run: if it errors, crashes or `remake.json` is unreadable, the call is blocked. Every denial is appended to `.remake/wall.log` with the paths it named and a sha256 of its input, never the content. Every agent that starts, and every prompt the session sends one, is recorded in `.remake/audit.log`. Here is a builder trying the room twice in the live wall test on 2026-10-13 (paths shortened, current log format):
+No folder crosses the wall. Clean roles keep temp files in `.remake/tmp/` (init-run makes it; a builder's is in its own worktree), and may Read the files Claude Code spills their own large tool results into: the hook allows one only when the agent's own transcript announced it. Room roles use the room or the session scratchpad. Must-fix review findings reach a builder in its prompt, since its worktree has no `.remake/reports/`.
+
+The hook is **a logged tripwire against accidental crossing, not a sandbox** (see [Limits](#limits)). It **fails closed** inside a run once it has found the run: if it errors, crashes or `remake.json` is unreadable, the call is blocked. Every denial, those included, is appended to `.remake/wall.log` with the paths it named and a sha256 of its input, never the content. Every agent that starts, and every prompt the session sends one, is recorded in `.remake/audit.log`. Here is a builder trying the room twice in the live wall test on 2026-10-13 (paths shortened, current log format):
 
 ```jsonl
 {"at":"2026-10-13T17:14:38.618Z","role":"builder","agent":"remakecraft:builder","tool":"Read","targets":["…\\wall-live\\brushling.remake-room\\evidence\\secret.txt"],"sha256":"69e789b0e3be30342901bd57a51e3f17470b1f34f52e9d68b1c25a00c95da3d4","reason":"Clean-room wall: builder may not touch the room. Work from spec/ and tests/ in the app tree."}
@@ -176,6 +178,11 @@ What each mode means legally, and how rights holders reach the author: [LEGAL.md
 - **Early alpha.** Three measured end-to-end targets so far: Brushling, Sweepling and the toy app above. Expect rough edges and file them.
 - **The wall only holds in Claude Code.** On other agents it is the honour system.
 - **The wall is a tripwire, not a sandbox.** The hook matches tool arguments and shell text. A command that reaches the room without naming it is neither denied nor logged. MCP calls go through the same wall, which denies and logs calls that name the room. Claude Code's OS sandbox would close that gap, but a plugin can't enable it, it covers the whole session rather than one role (the observer has to run the original), and it doesn't run on native Windows, so Remakecraft does not turn it on.
+- **Your other plugins reach the clean roles.** Claude Code hands every subagent the session's skills, MCP server instructions and user CLAUDE.md, and a plugin can't take them away from its own agents. The wall still denies MCP tools and agent CLIs (`codex`, `claude` and the like) to the clean side, and the agents are told to leave them alone, but their names and instructions are in context. For a run with nothing else loaded, start Claude Code with the project's settings only and no MCP servers. This drops your user-level plugins and MCP servers and keeps the wall; your `~/.claude/CLAUDE.md` still loads (checked on Claude Code 2.1.296):
+
+  ```bash
+  claude --setting-sources "project,local" --strict-mcp-config --plugin-dir <path to a Remakecraft checkout>
+  ```
 - **The orchestrating session is not clean.** It spawns both sides and reads what they return. Keep the evidence out of your own prompts to the clean side; the hook blocks room paths and blocked names in them, not paraphrase.
 - **The model has read the internet.** For a closed-source target the original's code was never public, but open-source remakes of popular apps almost certainly are in the training data. The blocklist keeps them out of every agent's tools; it can't remove them from the weights. A similarity and licence scan of Brushling against known Paint remakes is still pending.
 - **Parity measures the spec, not the original.** A behaviour nobody wrote down is not tested.

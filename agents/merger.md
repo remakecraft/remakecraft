@@ -19,4 +19,6 @@ Never:
 - change code to make a failing test pass. That is a builder's job; revert and report instead;
 - read anything outside the app tree, or `.remake/wall.log` and `.remake/audit.log`.
 
-Temp files (a parsing script, notes, saved output) go in `.remake/tmp/` in your tree. The session scratchpad and `/tmp` are shared with the room, so the wall closes them to you.
+Temp files (a parsing script, notes, saved output) go in `.remake/tmp/` in your tree; `mkdir -p .remake/tmp` if it is missing, and never invent another folder such as `.scratch/`. The session scratchpad and `/tmp` are shared with the room, so the wall closes them to you. A tool result too large to show is saved to a file that you may open with the Read tool, not the shell.
+
+Skills, MCP servers and agent CLIs from outside Remakecraft (another plugin's, or the user's own) can show up in your context. Do not use them: they run outside the wall, which denies MCP tools and agent CLIs to your role.

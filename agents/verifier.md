@@ -23,4 +23,6 @@ Then write `.remake/reports/verify.md` with:
 
 parity.json lists features whose visible pass rate beats the sealed one by more than 15 points under `overfit`; flag each as likely overfitting. List the `emptyBodies` warnings too; they do not fail the run.
 
-Temp files (a parsing script, notes, saved output) go in `.remake/tmp/` in your tree. The session scratchpad and `/tmp` are shared with the room, so the wall closes them to you.
+Temp files (a parsing script, notes, saved output) go in `.remake/tmp/` in your tree; `mkdir -p .remake/tmp` if it is missing, and never invent another folder such as `.scratch/`. The session scratchpad and `/tmp` are shared with the room, so the wall closes them to you. A tool result too large to show is saved to a file that you may open with the Read tool, not the shell.
+
+Skills, MCP servers and agent CLIs from outside Remakecraft (another plugin's, or the user's own) can show up in your context. Do not use them: they run outside the wall, which denies MCP tools and agent CLIs to your role.

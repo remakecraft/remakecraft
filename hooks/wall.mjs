@@ -308,6 +308,25 @@ function deobfuscate(command) {
 // the reviewer's own git tag is remake-reviewed.
 const ROOM_FRAGMENT = /remake-ro|\.remake-|make-roo|ke-room/;
 
+/**
+ * A glob bracket expression as a regex class. Shell words are not always
+ * globs (`['a-b','c']` is a JavaScript array), so every member is escaped and a
+ * range that runs backwards (e-b) keeps its three characters as literals
+ * instead of making the regex invalid.
+ */
+function bracketClass(body) {
+  const negate = /^[!^]/.test(body);
+  const chars = [...(negate ? body.slice(1) : body)];
+  const esc = (c) => (/[\\\]\[^-]/.test(c) ? `\\${c}` : c);
+  let out = "";
+  for (let k = 0; k < chars.length; k++) {
+    const [a, dash, b] = [chars[k], chars[k + 1], chars[k + 2]];
+    if (dash === "-" && b !== undefined && a <= b) { out += `${esc(a)}-${esc(b)}`; k += 2; }
+    else out += esc(a);
+  }
+  return out ? `[${negate ? "^" : ""}${out}]` : "\\[\\]";
+}
+
 /** Regex for one glob segment; $VAR and ${VAR} expand to anything. */
 function segmentRegex(seg) {
   let re = "";
@@ -315,11 +334,17 @@ function segmentRegex(seg) {
     const c = seg[i];
     if (c === "*") re += ".*";
     else if (c === "?") re += ".";
-    else if (c === "[") { const j = seg.indexOf("]", i); if (j > i) { re += `[${seg.slice(i + 1, j).replace(/^!/, "^").replace(/\\/g, "\\\\")}]`; i = j; } else re += "\\["; }
+    else if (c === "[") { const j = seg.indexOf("]", i); if (j > i) { re += bracketClass(seg.slice(i + 1, j)); i = j; } else re += "\\["; }
     else if (c === "$") { const m = /^\$(\{[^}]*\}|\w+)/.exec(seg.slice(i)); if (m) { re += ".*"; i += m[0].length - 1; } else re += "\\$"; }
-    else re += c.replace(/[.+^${}()|\\]/g, "\\$&");
+    else re += c.replace(/[.+^${}()|[\]\\/?*]/g, "\\$&");
   }
-  return new RegExp(`^${re}$`);
+  try {
+    return new RegExp(`^${re}$`);
+  } catch {
+    // Unreachable with the escaping above; if it ever happens, a pattern we
+    // cannot read is treated as one that matches everything.
+    return /^[\s\S]*$/;
+  }
 }
 
 const hasWild = (t) => /[*?[]|\$(\{|\w)/.test(t);
@@ -428,6 +453,7 @@ const SAFE_DQ = '"(?:[^"$`\\\\]|\\\\.)*"';
 const SAFE_SQ = "'[^']*'";
 const SCRIPT_RUNNERS = new Set(["node", "deno", "bun", "python", "python3", "py", "perl", "ruby", "php"]);
 const SHELL_PROGS = new Set(["sh", "bash", "zsh", "dash", "ksh", "fish", "pwsh", "powershell", "cmd", "eval", "source", "."]);
+const LIST_PROGS = new Set(["ls", "dir", "mkdir", "md", "test", "[", "get-childitem", "gci"]);
 
 // Search and edit programs whose first operand is a pattern or a script, not a file.
 // Per program: the flags that name the pattern, and the flags whose value is something else.
@@ -499,6 +525,21 @@ function dropHeredocBodies(command) {
   return out.join("\n");
 }
 
+/** The segment with fn applied to each quoted span, found the way a shell pairs quotes. */
+function mapQuoted(seg, fn) {
+  let out = "";
+  for (let i = 0; i < seg.length; i++) {
+    const c = seg[i];
+    if (c !== '"' && c !== "'") { out += c; continue; }
+    let j = i + 1;
+    while (j < seg.length && seg[j] !== c) j += c === '"' && seg[j] === "\\" ? 2 : 1;
+    if (j >= seg.length) return out + seg.slice(i); // unbalanced: leave the rest as it is
+    out += fn(seg.slice(i, j + 1));
+    i = j;
+  }
+  return out;
+}
+
 function reachView(command) {
   const msgRe = new RegExp(`(\\s(?:--message|-[a-zA-Z]*m)(?:=|\\s+))(?:${SAFE_DQ}|${SAFE_SQ})`, "g");
   const evalRe = new RegExp(`(\\s(?:-e|-c|-p|--eval|--print|-command)\\s+)(${SAFE_DQ}|${SAFE_SQ})`, "gi");
@@ -522,11 +563,19 @@ function reachView(command) {
     // ... and only a script runner loses its slashes that stand alone (division,
     // comments, split("//")); shells run what the string says.
     if (!SCRIPT_RUNNERS.has(prog)) return seg;
-    return seg.replace(evalRe, (_m, flag, body) => flag + body.replace(/(^|[\s"'(])\/+(?=[\s"')]|$)/g, "$1÷"));
+    const lone = (body) => body.replace(/(^|[\s"'(])\/+(?=[\s"')]|$)/g, "$1÷");
+    // Inside any quoted argument, a slash with no path on either side is a
+    // regex delimiter, not the root: split(/<testcase /), "/(de|fr)/(utf-8|cp)".
+    // A quoted word that is nothing but slashes is still a path.
+    const delimiters = (q) => (/^["']\/+["']$/.test(q) ? q : q.replace(/(^|[^\w.~:/-])\/+(?![\w.~-])/g, "$1÷"));
+    return mapQuoted(seg.replace(evalRe, (_m, flag, body) => flag + lone(body)), (q) => (literal.test(q) ? delimiters(q) : q));
   };
   // Split on ; & | and newlines outside quotes, keeping the separators.
-  let out = "", seg = "", q = "";
+  // A backslash escapes the next character outside single quotes: "name=\"x\"" is one string.
+  let out = "", seg = "", q = "", esc = false;
   for (const c of dropHeredocBodies(command)) {
+    if (esc) { seg += c; esc = false; continue; }
+    if (c === "\\" && q !== "'") { seg += c; esc = true; continue; }
     if (q) { seg += c; if (c === q) q = ""; continue; }
     if (c === '"' || c === "'") { q = c; seg += c; continue; }
     if (/[;&|\n]/.test(c)) { out += rewrite(seg) + c; seg = ""; continue; }
@@ -545,6 +594,10 @@ function shellReach(command, cwd, run, home, mainRoot, lift = false) {
   const inLogs = (t) => logDirs.some((d) => isInside(t, d) && !WORK_DIRS.some((w) => isInside(t, `${d}/${w}`)));
   const home_ = norm(home).replace(/\/+$/, "");
   const homeAbove = strictAncestor(home_, run.root) || strictAncestor(home_, mainRoot);
+  const transcripts = `${home_}/.claude/projects`;
+  // A builder's worktree has its own .remake/; the main tree's holds the reports and the logs.
+  const inWorktree = lower(run.root).replace(/\/+$/, "") !== lower(mainRoot).replace(/\/+$/, "");
+  const mainDot = norm(path.join(mainRoot, ".remake"));
   for (const toks of simpleCommands(reachView(command))) {
     const words = toks.map(stripQuotes).filter(Boolean);
     const first = /^(cd|pushd|set-location|sl|chdir)(\.\.)?$/i.exec(words[0] || "");
@@ -556,6 +609,8 @@ function shellReach(command, cwd, run, home, mainRoot, lift = false) {
     if (isCd && !words[1] && homeAbove) return "a bare cd goes to the home directory, above its tree";
     // Links and copies could carry original/ content or a path out of it.
     const links = /^(ln|mklink|new-item|ni|cp)$/i.test(progName(words[0]));
+    // Listing .remake/ itself, or making it, shows names only; finding .remake/tmp/ that way is fine.
+    const lists = LIST_PROGS.has(programOf(words).prog);
     for (const raw of words.slice(startAt)) {
       const w0 = raw.replace(/^\d*[<>]+/, "");
       // Also the word with backslash escapes removed: ../sea\led is ../sealed in a shell.
@@ -575,7 +630,9 @@ function shellReach(command, cwd, run, home, mainRoot, lift = false) {
         const abs = resolveFrom(cwd, driveForm(expanded, cwd));
         if (strictAncestor(abs, run.root) || strictAncestor(abs, mainRoot)) return `${raw} is above its tree`;
         if (isInside(abs, room) && !(lift && !links && isInside(abs, original))) return `${raw} is the room`;
-        if (inLogs(abs)) return `${raw} is in the run logs`;
+        if (isInside(abs, transcripts)) return `${raw} is Claude Code's session data, which holds the room agents' transcripts`;
+        if (inWorktree && isInside(abs, mainDot)) return `${raw} is the main tree's .remake/; your worktree keeps temp files in its own .remake/tmp/`;
+        if (inLogs(abs) && !(lists && logDirs.some((d) => lower(abs).replace(/\/+$/, "") === lower(d)))) return `${raw} is in the run logs; temp files go in .remake/tmp/`;
       }
       }
     }
@@ -688,8 +745,17 @@ export function decide(hook, run, home, tmp) {
 
   if (READ_TOOLS.has(tool)) {
     const roots = [cwd, run.root, ...TOOLCHAIN_DIRS.map((d) => norm(path.join(home, d))), ...(lift ? [`${mainRoot}${ORIGINAL_DIR}`] : [])];
-    const outside = targets.find((t) => !roots.some((r) => isInside(t, r)));
-    if (outside) return deny(`${role} may read only its own tree and toolchains, not ${outside}.`);
+    // own_outputs: spill files Claude Code wrote for this agent's own large tool
+    // results, checked against its transcript by guard.mjs. They hold nothing
+    // the agent was not already shown.
+    const own = new Set((hook.own_outputs || []).map((p) => lower(p)));
+    const outside = targets.find((t) => !own.has(lower(t)) && !roots.some((r) => isInside(t, r)));
+    if (outside) {
+      const spill = /\/\.claude\/projects\/[^/]+\/[^/]+\/tool-results\/[^/]+$/i.test(norm(outside))
+        ? " A spill file is readable only by the agent whose result announced it; if that is you, retry, or send big output to .remake/tmp/ and read it there."
+        : "";
+      return deny(`${role} may read only its own tree and toolchains, not ${outside}.${spill}`);
+    }
   }
 
   if (SHELL_TOOLS.has(tool)) {
@@ -701,9 +767,13 @@ export function decide(hook, run, home, tmp) {
     if ([cmd, plain].some((c) => /(^|[^a-z])(evidence|sealed)([^a-z]|$)/.test(c))) return deny(`${role} may not reach for evidence or sealed tests.`);
     if (plain.includes(ROOM_MARK) || ROOM_FRAGMENT.test(plain)) return deny(`${role} may not name the room, even in pieces.`);
     if (/\.\.\/[^\s]*[*?]/.test(cmd)) return deny(`${role} may not glob outside its tree.`);
-    const glob = shellGlobsRoom(raw, cwd, `${mainRoot}${ROOM_MARK}`);
+    // reachView: a quoted grep or sed pattern is a regex for the program, never a glob for the shell.
+    const glob = shellGlobsRoom(reachView(raw), cwd, `${mainRoot}${ROOM_MARK}`);
     if (glob) return deny(`${role} may not use a pattern that matches the room (${glob}).`);
     if (NAMES_LOG.test(plain)) return deny(`${role} may not read wall.log or audit.log; they record the room's paths.`);
+    // Every agent's transcript and spilled output sits there, the room agents' included.
+    if (/(^|[^a-z0-9_-])\.claude\/+projects([/\s"'`;|&)]|$)/.test(plain))
+      return deny(`${role} may not open Claude Code's session data (.claude/projects); it holds the room agents' transcripts. Read your own large outputs with the Read tool.`);
     const assigned = agentAssigned(plain) || agentAssigned(raw);
     if (assigned) return deny(`${role} may not start another agent (${assigned} via a variable); it would run outside the wall.`);
     // The unstripped command: a stripped `cd original` would leave later ../ resolving against the tree.

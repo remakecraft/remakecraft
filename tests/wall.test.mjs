@@ -391,11 +391,16 @@ test("clean roles may not read the run logs in any form", () => {
     "cat .remake/wal''l.log",
     'cat .remake/"audit".log',
     "cat .remake/./wall.log",
-    "ls .remake",
+    "head -5 .remake/wall.log",
     "cat src/../.remake/wall.log",
   ]) {
     denied(call("remakecraft:verifier", "Bash", { command }), command);
     denied(call("remakecraft:merger", "Bash", { command }), command);
+  }
+  // Listing .remake/ itself shows file names, never what the logs hold (v0.1.2, chardet #9, #18, #19, #21).
+  for (const command of ["ls .remake", "ls -a . .remake", "mkdir -p .remake/tmp && ls .remake"]) {
+    allowed(call("remakecraft:verifier", "Bash", { command }), command);
+    allowed(call("remakecraft:merger", "Bash", { command }), command);
   }
   allowed(call("remakecraft:merger", "Bash", { command: "cat .remake/progress/features.json" }));
   allowed(call("remakecraft:verifier", "Bash", { command: "ls .remake/reports" }));

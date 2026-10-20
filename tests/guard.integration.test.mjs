@@ -111,6 +111,11 @@ for (const [name, manifest] of [
     assert.equal(r.status, 2);
     assert.match(r.stderr, /remake\.json is unreadable/);
     assert.equal(r.stdout, "");
+    // v0.1.2: every block is on record, this one included.
+    const log = wallLog(app);
+    assert.equal(log.length, 1, "one wall.log line for the blocked call");
+    assert.equal(log[0].tool, "Write");
+    assert.match(log[0].reason, /remake\.json is unreadable/);
   });
 }
 
@@ -225,6 +230,23 @@ test("an internal error denies inside a run and allows outside one", async (t) =
   assert.equal(decision(handle("{ not json", { fallbackCwd: app })), "deny");
   assert.equal(decision(handle("", { fallbackCwd: app })), "deny");
   assert.equal(decision(handle("{ not json", { fallbackCwd: empty })), "allow");
+
+  // v0.1.2: the chardet run's guard errors were denied but never logged.
+  const log = wallLog(app);
+  assert.equal(log.length, 3, "a wall.log line for each failure inside the run");
+  assert.deepEqual(log.map((l) => l.role), ["builder", "main", "main"]);
+  assert.equal(log[0].tool, "Read");
+  assert.deepEqual(log[0].targets, [path.join(room, "evidence", "a.md")]);
+  for (const l of log) assert.match(l.reason, /guard failed/);
+  assert.equal(existsSync(path.join(empty, ".remake")), false, "nothing is written outside a run");
+});
+
+test("a remake.json saved with a byte-order mark is read, not refused", (t) => {
+  const { app, room } = makeRun(t, '\uFEFF{"app":"x","blocked":[]}');
+  assertDenied(guard(app, "Read", { file_path: path.join(room, "evidence", "a.md") }), app);
+  const ok = guard(app, "Read", { file_path: path.join(app, "src", "main.mjs") });
+  assert.equal(ok.status, 0, ok.stderr);
+  assert.equal(ok.stdout, "");
 });
 
 // The exact command Claude Code runs, read from hooks/hooks.json, so a broken
