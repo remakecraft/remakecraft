@@ -9,7 +9,7 @@ You are a builder in a Remakecraft clean-room run. You get one feature id. Every
 
 Do:
 1. Read the feature in `spec/spec.json` and its tests in `tests/visible/`.
-2. Implement it in the stack named in `remake.json`, matching the surrounding code.
+2. Implement it in the stack named in `remake.json`, matching the surrounding code. When its test commands pass `--bin "<entry>"`, the tests start that file as the app, so the feature must be reachable through it.
 3. Run the feature's visible tests until they pass, then the whole visible suite to check you broke nothing.
 4. Commit on your worktree branch as `feat(<feature-id>): <summary>`.
 

@@ -4,7 +4,12 @@
 // and seeds the progress checklist the skill resumes from.
 //
 //   node scripts/init-run.mjs <app> --out <dir> --stack <stack> [--builders 1-5] [--cheap] [--budget <usd>]
-//                             [--with-rea | --open] [--basis own|license|authorized]
+//                             [--bin <entry>] [--with-rea | --open] [--basis own|license|authorized]
+//
+// --bin names the clone's entry point, relative to the app tree, when the
+// suites drive the target as a command (a CLI). Both test commands then pass
+// it to the Node shim, which runs every test against it; without it a CLI's
+// suites have no program to start.
 //
 // Clean is the default. --with-rea lets the observer alone look inside the
 // original; --open lowers that wall for every role. Either one needs the
@@ -13,11 +18,11 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { requireClaudeVersion } from "./lib/claude-version.mjs";
-import { STACKS, STACK_NAMES } from "./lib/stacks.mjs";
+import { STACKS, STACK_NAMES, checkBin, stackCommands } from "./lib/stacks.mjs";
 import { BASES } from "../hooks/wall.mjs";
 import { PLUGIN_ROOT, ROOM_MARK, RunError, git, gitCommit, isMain, isNonEmptyDir, main, modeLabel, parseArgs, toSlash, validateManifest, writeJson } from "./lib/run.mjs";
 
-const USAGE = `Usage: init-run.mjs <app> --out <dir> --stack <${STACK_NAMES.join("|")}> [--builders 1-5] [--cheap] [--budget <usd>] [--with-rea | --open] [--basis ${BASES.join("|")}]`;
+const USAGE = `Usage: init-run.mjs <app> --out <dir> --stack <${STACK_NAMES.join("|")}> [--builders 1-5] [--cheap] [--budget <usd>] [--bin <entry>] [--with-rea | --open] [--basis ${BASES.join("|")}]`;
 // Said before any run that looks inside the original, and again in its output.
 export const EULA_NOTE = "Decompiling or inspecting the original may breach its EULA or local law. Whether you may is your call, not Remakecraft's.";
 const MODELS = { planner: "opus", builder: "sonnet", reviewer: "opus" };
@@ -114,7 +119,7 @@ function readModeFlags(flags) {
 }
 
 export function initRun(argv) {
-  const { pos, flags } = parseArgs(argv, { bool: ["cheap", "with-rea", "open"], value: ["out", "stack", "builders", "budget", "basis"] });
+  const { pos, flags } = parseArgs(argv, { bool: ["cheap", "with-rea", "open"], value: ["out", "stack", "builders", "budget", "basis", "bin"] });
   if (pos.length !== 1) throw new RunError(USAGE, 2);
   const app = pos[0];
   if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(app))
@@ -135,6 +140,8 @@ export function initRun(argv) {
     budgetUsd = Number(String(flags.budget).replace(/^\$/, ""));
     if (!Number.isFinite(budgetUsd) || budgetUsd <= 0) throw new RunError(`--budget must be a number of US dollars above 0, like --budget 25`, 2);
   }
+  const bin = flags.bin === undefined ? undefined : checkBin(flags.bin);
+  const commands = stackCommands(flags.stack, { bin });
   const modes = readModeFlags(flags);
   const notes = [];
   if (cheap && builders !== 1) {
@@ -158,7 +165,7 @@ export function initRun(argv) {
     models: cheap ? CHEAP_MODELS : MODELS,
     blocked: [],
     ...modes,
-    commands: { ...stack.commands },
+    commands,
     ...(budgetUsd === undefined ? {} : { budgetUsd }),
   });
   const checklist = readChecklist();
@@ -176,7 +183,7 @@ export function initRun(argv) {
     writeFileSync(path.join(root, ".gitignore"), [".remake/", ".claude/worktrees/", ".claude/settings.local.json", ...stack.ignore].join("\n") + "\n");
     for (const [name, make] of Object.entries(stack.files || {})) {
       mkdirSync(path.dirname(path.join(root, name)), { recursive: true });
-      writeFileSync(path.join(root, name), make(app));
+      writeFileSync(path.join(root, name), make(app, { bin }));
     }
     writeJson(path.join(root, ".remake", "local.json"), { room: toSlash(room) });
     writeJson(path.join(root, ".claude", "settings.local.json"), runPermissions(room, { rea: manifest.rea || manifest.mode === "open", tools: stack.tools }));
@@ -191,7 +198,7 @@ export function initRun(argv) {
     // process.cwd() is the physical path, so compare real paths (macOS /var is /private/var).
     const rel = path.relative(realpathSync.native(root), realpathSync.native(process.cwd()));
     const restart = rel.startsWith("..") || path.isAbsolute(rel);
-    return { root, room, manifest, sha, notes, layout: stack.layout, restart };
+    return { root, room, manifest, sha, notes, layout: stack.layout, bin, restart };
   } catch (err) {
     if (!reused) rmSync(room, { recursive: true, force: true });
     else for (const d of madeInRoom) rmSync(path.join(room, d), { recursive: true, force: true });
@@ -216,6 +223,7 @@ if (isMain(import.meta.url)) {
         `  evidence  put screenshots, recordings and docs in ${toSlash(path.join(r.room, "evidence"))}`,
         `  original  optional: the original app or a launcher in ${toSlash(path.join(r.room, "original"))}, ${ORIGINAL_USE[r.manifest.mode === "open" ? "open" : r.manifest.rea ? "rea" : "clean"]}`,
         `  tests     ${r.layout}`,
+        ...(r.bin ? [`  entry     ${r.bin}: both test commands pass --bin, so every test runs against it`] : []),
         r.restart
           ? `Next: this session did not start in the app tree, so builders cannot get worktrees. Restart Claude in ${toSlash(r.root)} and run /remakecraft:remake ${r.manifest.app} to resume.`
           : `Next: add known open-source reimplementations to "blocked" in remake.json, then phase 1.`,

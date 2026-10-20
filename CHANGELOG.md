@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-20
+
+Two fixes from the chardet proof run, a CLI cloned on the `web` stack under `claude -p`.
+
+### Fixed
+
+- **CLI targets scored 0.** The `web` and `tauri` presets never passed `--bin` to the Node suite runner, so suites that start the app through `REMAKE_APP_BIN` had no program to run: the first parity run of the proof run scored 0/235 until `remake.json` was fixed by hand. `init-run.mjs --bin <entry>` now puts `--bin "<entry>"` on both test commands and on the app's `npm test`. The path is relative to the app tree, so parity runs HEAD's entry in its scratch checkout; it is checked to stay inside the tree, and the Rust preset refuses it (its tests use `CARGO_BIN_EXE_<name>`). The skill, builder and test-writer say when to use it.
+- **`/remakecraft:build` could not run headless.** Under `claude -p` the Workflow tool waits for an interactive review and is denied. The skill now falls back when the tool is missing or refused: `scripts/build-steps.mjs` prints the workflow's loop for the run (builder, merger, verifier, reviewer, with the workflow's agent types, prompts and log lines, the run's builder count and models, and the plugin's absolute root), and the session drives it with subagents. The interactive workflow is unchanged.
+
+### Added
+
+- Tests: a CLI run scored end to end with and without `--bin`, `--bin` path checks, and the workflow script run with fake Workflow globals to hold the fallback to the same agents, prompts, order and stop conditions.
+
 ## [0.1.0] - 2026-10-19
 
 First public release.
@@ -41,5 +54,6 @@ First public release.
 - Brushling (Paint-style app, Rust + egui): 470 of 471 (99.7%), 154 of 154 sealed, 2 h 56 min wall, $41.08 in tokens. The one failure is a spec defect the review caught.
 - Sweepling (Minesweeper): 265 of 265, about $30, run overnight unattended. Its tests are headless, so its dialogs were never checked in a real window.
 
-[Unreleased]: https://github.com/remakecraft/remakecraft/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/remakecraft/remakecraft/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/remakecraft/remakecraft/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/remakecraft/remakecraft/releases/tag/v0.1.0
