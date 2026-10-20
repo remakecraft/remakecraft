@@ -43,7 +43,7 @@ For your own apps, abandoned software, interoperability and learning. Read [Resp
 **The wall.** Everything taken from the original (your screenshots, recordings, the inventory, the sealed tests) lives in a separate folder, *the room*. A hook denies and logs any builder, verifier, reviewer or merger call that names the room or walks up out of the app tree. It is **a logged tripwire, not a sandbox**: a path built at run time is not caught, and the model's training data is outside it. [Limits](#limits) has the full list.
 
 ```
-/remakecraft:remake <app> [--stack rust-egui|tauri|web] [--builders 1-5] [--cheap] [--out <dir>] [--with-rea | --open --basis own|license|authorized]
+/remakecraft:remake <app> [--stack rust-egui|tauri|web] [--builders 1-5] [--cheap] [--bin <entry>] [--out <dir>] [--with-rea | --open --basis own|license|authorized]
 ```
 
 ---
@@ -63,6 +63,8 @@ For your own apps, abandoned software, interoperability and learning. Read [Resp
 Every run serves a live page on localhost: parity per layer with sealed results as counts, each feature, the agents, and the wall log as it happens. Pause it or approve the spec from there.
 
 Runs resume from progress files and git checkpoints after a crash or a usage-limit stop. Models are configurable per run; `--cheap` runs everything on Sonnet with one builder.
+
+Cloning a CLI on the `web` or `tauri` stack? Pass `--bin <entry>` (for example `--bin bin/<app>.mjs`): every test then runs against that entry point.
 
 ## How the wall works
 

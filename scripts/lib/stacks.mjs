@@ -8,6 +8,12 @@
 //   {report}  the results file the command must write, JUnit XML or TAP
 //   {plugin}  this plugin's root, for the runner shims in scripts/runners/
 //
+// A target the suites drive as a command (a CLI, or a binary the tests start)
+// gets `--bin "<entry>"` on both test commands, from init-run's --bin. The
+// shim hands it to the tests as REMAKE_APP_BIN. The path is relative to the
+// app root, so parity runs HEAD's entry in its scratch checkout, not the
+// working tree's.
+//
 // Commands run through the platform shell (cmd.exe on Windows, sh elsewhere),
 // so each preset is one program invocation with no chaining: `;`, `&&` and
 // `||` do not mean the same thing in both.
@@ -19,6 +25,7 @@
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { RunError } from "./run.mjs";
 
 // Node suites go through a shim too: Node 20 cannot expand a test glob and
 // Node 22+ cannot take a test directory, so neither fits in one command.
@@ -33,8 +40,10 @@ const NEXTEST = `node "{plugin}/scripts/runners/nextest.mjs" {suite} "{report}"`
 // npm refuses to install without a package.json. Its `npm test` runs the
 // visible suite through a copy of the parity shim, for the same reason
 // NODE_TEST does.
-const packageJson = (app) =>
-  JSON.stringify({ name: app.toLowerCase(), private: true, type: "module", scripts: { test: "node scripts/run-suite.mjs tests/visible" } }, null, 2) + "\n";
+// With --bin, `npm test` passes it too, so a builder's local run drives the
+// same entry the harness scores.
+const packageJson = (app, { bin } = {}) =>
+  JSON.stringify({ name: app.toLowerCase(), private: true, type: "module", scripts: { test: `node scripts/run-suite.mjs tests/visible${bin ? ` --bin ${bin}` : ""}` } }, null, 2) + "\n";
 const SUITE_SHIM = fileURLToPath(new URL("../runners/node-suite.mjs", import.meta.url));
 const NODE_FILES = { "package.json": packageJson, "scripts/run-suite.mjs": () => readFileSync(SUITE_SHIM, "utf8") };
 
@@ -55,6 +64,7 @@ export const STACKS = {
     tools: NODE_TOOLS,
     ignore: ["node_modules/", "dist/"],
     files: NODE_FILES,
+    bin: true,
     layout: "Node test runner. Test files are tests/<suite>/**/*.test.mjs; sealed files sit at tests/sealed/ at run time, so relative imports match.",
   },
   tauri: {
@@ -62,8 +72,32 @@ export const STACKS = {
     tools: [...NODE_TOOLS, ...CARGO_TOOLS],
     ignore: ["node_modules/", "dist/", "src-tauri/target/"],
     files: NODE_FILES,
+    bin: true,
     layout: "Tauri app. Tests are Node test files in tests/<suite>/ that drive the headless CLI built from src-tauri.",
   },
 };
 
 export const STACK_NAMES = Object.keys(STACKS);
+
+// Segments of letters, digits, `.`, `_` and `-`, none of them `.` or `..`: the
+// path is pasted into a shell command and must stay inside the app tree.
+const BIN_PATH = /^[A-Za-z0-9_][A-Za-z0-9._-]*(\/[A-Za-z0-9_][A-Za-z0-9._-]*)*$/;
+
+/** The entry --bin names, in forward slashes. Throws for anything unsafe to paste into a command. */
+export function checkBin(bin) {
+  const p = String(bin).replace(/\\/g, "/").replace(/^\.\//, "");
+  if (!BIN_PATH.test(p))
+    throw new RunError(`--bin must be a path inside the app tree, relative to it, like bin/<app>.mjs (letters, digits, . _ - and /; no "..", no absolute path): ${bin}`, 2);
+  return p;
+}
+
+/** A stack's remake.json commands, with --bin on both test commands when the target is a command. */
+export function stackCommands(name, { bin } = {}) {
+  const stack = STACKS[name];
+  if (!stack) throw new RunError(`Unknown stack "${name}". Choose one of: ${STACK_NAMES.join(", ")}`, 2);
+  if (bin === undefined) return { ...stack.commands };
+  if (!stack.bin)
+    throw new RunError(`--bin is for stacks whose suites run through the Node shim (${STACK_NAMES.filter((n) => STACKS[n].bin).join(", ")}). Rust tests start the binary through CARGO_BIN_EXE_<name>.`, 2);
+  const flag = ` --bin "${checkBin(bin)}"`;
+  return { ...stack.commands, testVisible: stack.commands.testVisible + flag, testSealed: stack.commands.testSealed + flag };
+}
