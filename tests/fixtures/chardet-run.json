@@ -173,5 +173,95 @@
     "input": {
       "command": "cd {app}/.claude/worktrees/agent-afa1e62077fc81d45 && node .scratch/probe.mjs LEGACY_ISO \"/(de|fr|cs|pl|ru|el|tr|lt|th|ar|is|he|en|edge|ko|uk|bg)/(utf-8|cp|lat|iso|mac|tis|sin|koi|johab|single|euc|big|gb|shift)\" 2>&1 | grep -v \"ascii\\|UTF-\\|utf-\""
     }
+  },
+  {
+    "id": "7",
+    "role": "builder",
+    "why": "builder's own $W/tests/visible read as the room (pilot)",
+    "tool": "Bash",
+    "input": {
+      "command": "W={app}/.claude/worktrees/agent-a15af71ee8d2ea9c6; cat $W/src/detect/ascii.mjs $W/src/detect/index.mjs; grep -n 'detect.ascii\"' -B2 -A40 $W/spec/spec.json | head -90; ls $W/tests/visible | head -30"
+    }
+  },
+  {
+    "id": "8",
+    "role": "builder",
+    "why": "builder's own $W/tests/visible read as the room (pilot)",
+    "tool": "Bash",
+    "input": {
+      "command": "W={app}/.claude/worktrees/agent-a15af71ee8d2ea9c6; mkdir -p $W/.remake/tmp; git -C $W status --short | head; node $W/scripts/run-suite.mjs $W/tests/visible --bin $W/bin/guessling.mjs 2>&1 | tee $W/.remake/tmp/before.txt | tail -8"
+    }
+  },
+  {
+    "id": "12",
+    "role": "verifier",
+    "why": "the word sealed in a report heredoc",
+    "tool": "Bash",
+    "input": {
+      "command": "mkdir -p \"{app}/.remake/tmp\"; cat > \"{app}/.remake/reports/verify.md\" <<'EOF'\n# Verify: guessling (pilot, commit 09168da)\n\n**Hash mismatches: none (app hashes ok, sealedChanged 0). Stub hits: none (11 files scanned).**\n**The run is INVALID as a conformance measurement: every test failed on a harness config error, not on app behaviour.**\n\nRoot cause: every visible failure reads `REMAKE_APP_BIN is not set; run the suite with run-suite.mjs <dir> --bin <app entry>` (tests/visible/lib/harness.mjs:73). remake.json `commands.testVisible` and `commands.testSealed` call node-suite.mjs without a `--bin` argument or REMAKE_APP_BIN. The sealed suite shows the same 0 (it uses the same command, so presumably the same cause; the sealed failure text was not read). The score of 0% therefore says nothing about the 10 pilot features.\n\n## Score\nParity 0% (0/235). Visible 0/163, sealed 0/72.\n\n| layer | visible | sealed | overall |\n|---|---|---|---|\n| behaviour | 0/121 | 0/54 | 0% |\n| pixel | - | - | - |\n| format | 0/13 | 0/5 | 0% |\n| ui | 0/29 | 0/13 | 0% |\n\n## Pilot features (sealed = counts only)\n\n| feature | visible | sealed |\n|---|---|---|\n| cli.invoke | 0/5 | 0/2 |\n| cli.stdin | 0/7 | 0/3 |\n| cli.minimal | 0/2 | 0/1 |\n| cli.unknown-option | 0/2 | 0/1 |\n| cli.unopenable | 0/2 | 0/1 |\n| output.result-line | 0/5 | 0/2 |\n| output.streams-exit | 0/4 | 0/2 |\n| detect.bom | 0/8 | 0/3 |\n| detect.ascii | 0/4 | 0/2 |\n| detect.empty-binary | 0/4 | 0/2 |\n\n## Visible failures\nAll 163 visible tests fail (full list with ids in .remake/reports/parity.json, `visibleFailures`), each with the same message: REMAKE_APP_BIN is not set. No assertion-level failure was reached.\n\n## Overfit / emptyBodies\noverfit: none. emptyBodies: none.\n\n## Exit code\nparity.json records exitCode 0, ok true. The shell output did not display the process code; 0 is inferred.\n\n## Needed\nFix remake.json test commands (or the runner) so the app entry (likely bin/ in the app tree) is passed as `--bin` / REMAKE_APP_BIN, then re-run parity.\nEOF"
+    }
+  },
+  {
+    "id": "28",
+    "role": "verifier",
+    "why": "f.sealed in a node -e script",
+    "tool": "Bash",
+    "input": {
+      "command": "node -e \"const j=require('{app}/.remake/reports/parity.json');for(const f of j.features){if(f.visible.passed<f.visible.total||f.sealed.passed<f.sealed.total)console.log(f.id,f.layer,'V',f.visible.passed+'/'+f.visible.total,'S',f.sealed.passed+'/'+f.sealed.total)};console.log('exitCode',j.exitCode,'ok',j.ok);console.log(JSON.stringify(j.visibleFailures,null,1))\""
+    }
+  },
+  {
+    "id": "30",
+    "role": "builder",
+    "why": "the word evidence in a heredoc script's comment",
+    "tool": "Bash",
+    "input": {
+      "command": "cd {app}/.claude/worktrees/agent-a68d88d400780b80c && node - <<'EOF'\nconst fs=require(\"fs\");\nlet p=\"src/detect/sbcs/engine.mjs\";\nlet s=fs.readFileSync(p,\"utf8\");\nconst crlf=s.includes(\"\\r\\n\"); console.log(\"crlf\",crlf);\ns=s.replace(/\\r\\n/g,\"\\n\");\nfunction rep(a,b){ if(!s.includes(a)) throw new Error(\"missing: \"+a.slice(0,60)); s=s.replace(a,b); }\nrep(`function profile(bytes, table) {`,`function profile(bytes, table, full) {`);\nrep(`    } else p.nAsciiLetters++;\n    if (e.mark)`,`    } else {\n      p.nAsciiLetters++;\n      // On a complete table (EBCDIC) the plain letters are the bulk of the evidence.\n      if (full) {\n        p.nHigh++;\n        const have = p.letters.get(e.lower);\n        if (have) have[0]++;\n        else p.letters.set(e.lower, [1, e.script]);\n      }\n    }\n    if (e.mark)`);\nrep(`  for (const [ch, [count, script]] of p.letters) {\n    const f = L.letters.get(ch);\n    s += f !== undefined ? count * Math.log(f / st.z) :`,`  // On a complete table the shares are of all letters (ASCII ones included), not of the\n  // non-ASCII ones, and the plain letters come from the language's ASCII frequencies.\n  const z = page.full ? 100 : st.z;\n  for (const [ch, [count, script]] of p.letters) {\n    const f = L.letters.get(ch) ?? (page.full ? L.ascii?.get(ch) : undefined);\n    s += f !== undefined ? count * Math.log(f / z) :`);\nrep(`const p = profile(window, page.table);`,`const p = profile(window, page.table, page.full);`);\nfs.writeFileSync(p,s);\nEOF"
+    }
+  },
+  {
+    "id": "31",
+    "role": "verifier",
+    "why": "the word sealed in a report heredoc",
+    "tool": "Bash",
+    "input": {
+      "command": "mkdir -p \"{app}/.remake/reports\" && cat > \"{app}/.remake/reports/verify.md\" <<'EOF'\n# Verify: guessling @ 1b2b55b\n\n**Hashes: OK (no app/spec/visible-test changes, sealedChanged 0). Stubs: none (32 files scanned). Neither fails the run.**\n\nParity 96% (241/251). Mode: clean-room. Parity exit code 0. Build ok.\n\n| layer | visible | sealed | overall |\n|---|---|---|---|\n| behaviour | 131/131 | 51/60 | 95.2% |\n| pixel | - | - | - |\n| format | 13/13 | 4/5 | 94.4% |\n| ui | 29/29 | 13/13 | 100% |\n\nTotal visible 173/173, sealed 68/78 (previous run: 173/173, 68/78).\n\n## Visible failures\nNone.\n\n## Sealed results (counts only, features with failures)\n| feature | sealed |\n|---|---|\n| cli.legacy-casing | 0/1 |\n| output.streams-exit | 1/2 |\n| detect.utf8 | 2/3 |\n| detect.era-modern-web | 2/3 |\n| detect.era-always-on | 1/2 |\n| detect.era-legacy-iso | 1/2 |\n| detect.era-dos | 1/2 |\n| detect.era-mainframe | 1/2 |\n| detect.era-all | 1/2 |\n| detect.corpus-summary | 0/1 |\n\n## Likely overfitting (visible beats sealed by >15 points)\nAll ten features above are flagged as likely overfitting.\n\n## emptyBodies warnings\nNone.\nEOF"
+    }
+  },
+  {
+    "id": "2",
+    "role": "spec-writer",
+    "why": "spec-writer's leak self-grep over its own spec hit the blocklist",
+    "tool": "Grep",
+    "input": {
+      "pattern": "(?i)chardet|universaldetector|encodingera|detect_all|should_rename|encoding_era|max_bytes|chunk_size|prober|codingstatemachine|chardistribution|you are running|takes one or more file paths",
+      "path": "{app}.remake-room/spec/spec.json",
+      "output_mode": "content"
+    }
+  },
+  {
+    "id": "3",
+    "role": "test-writer",
+    "why": "leak grep over the whole room, evidence included (stays denied)",
+    "tool": "Grep",
+    "input": {
+      "pattern": "chardet",
+      "path": "{app}.remake-room",
+      "glob": "{tests,sealed}/**",
+      "-i": true,
+      "output_mode": "files_with_matches"
+    }
+  },
+  {
+    "id": "13",
+    "role": "main",
+    "why": "the main session's leak grep (stays denied: not a room role)",
+    "tool": "Grep",
+    "input": {
+      "pattern": "chardet|uchardet|charset-normalizer|jschardet|chardetng",
+      "path": "{app}.remake-room/spec",
+      "-i": true,
+      "output_mode": "count"
+    }
   }
 ]

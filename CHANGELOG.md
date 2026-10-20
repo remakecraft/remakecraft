@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-20
+
+Three wall false positives from the chardet proof run (v0.1.0, wall.log #2, #7, #8, #12, #28, #30, #31). Every true positive stays denied: clean roles still never reach the room, the evidence, the sealed tests or blocklisted projects.
+
+### Fixed
+
+- **"sealed" and "evidence" as plain words.** Any clean-role command containing either word was denied: a verify report written through a heredoc ("sealed 68/78"), `f.sealed.passed` in a `node -e` script, a comment in a script, a commit message, a grep pattern or a test name. The wall now denies only a reference to the folders: the name standing alone in what the shell reads (`cd $R && ls sealed`, `$R/sealed/a.test.mjs`), and beside a path separator or as a whole string in a script (`R + "/sealed"`, `path.join(r, "sealed")`). Heredocs piped or fed to a shell, or that expand `$( )`, are still read as shell, and cheap obfuscation (`sea''led`, `'evi'+'dence'`) is undone first.
+- **A builder's own `$W/tests/visible` read as the room.** With the slashes removed first, `$W/tests/visible` became one variable `$Wtests…` that matched any name. A variable the command sets to a literal value (`W=<worktree>; ls $W/tests/visible`) is now checked as that value, for the room-pattern check and for path reach alike. A variable nobody sets stays opaque as before, and a value that leads out of the tree or into the room is denied (`W=..; cat $W/x`, `W=<parent>; cat $W/g*.r*/inventory.json`).
+- **The blocklist refused the spec's own leak check.** The spec-writer could not Grep its spec for the blocked names it must keep out. A room role may now Grep its own output (observer: `<room>/inventory.json`; spec-writer: `<room>/spec/`; test-writer: `<room>/tests/` and `<room>/sealed/`) with the names in the pattern alone. Each such call is recorded in `.remake/audit.log` as a `leak-check` event, and a call whose line cannot be written is denied. Clean roles, the main session, a path or glob that names a blocked project, a path anywhere else in the room (#3 searched the whole room, evidence included) and Bash `grep` stay denied.
+
+### Added
+
+- v0.1.3 tests in `tests/chardet-run.test.mjs`, replaying the logged commands next to near-miss variants that must stay denied.
+
 ## [0.1.2] - 2026-10-20
 
 Six wall bugs from phase 5 of the chardet proof run (v0.1.0, wall.log #5 to #29). Every fix keeps the clean roles out of the room, the evidence, the sealed tests and blocklisted projects.
@@ -26,6 +40,7 @@ Six wall bugs from phase 5 of the chardet proof run (v0.1.0, wall.log #5 to #29)
 ### Added
 
 - `tests/chardet-run.test.mjs`: a regression test per bug, replaying the real commands from the chardet run's `wall.log` (`tests/fixtures/chardet-run.json`), each next to the checks that must stay denied.
+
 ## [0.1.1] - 2026-10-20
 
 Two fixes from the chardet proof run, a CLI cloned on the `web` stack under `claude -p`.
@@ -74,7 +89,8 @@ First public release.
 - Brushling (Paint-style app, Rust + egui): 470 of 471 (99.7%), 154 of 154 sealed, 2 h 56 min wall, $41.08 in tokens. The one failure is a spec defect the review caught.
 - Sweepling (Minesweeper): 265 of 265, about $30, run overnight unattended. Its tests are headless, so its dialogs were never checked in a real window.
 
-[Unreleased]: https://github.com/remakecraft/remakecraft/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/remakecraft/remakecraft/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/remakecraft/remakecraft/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/remakecraft/remakecraft/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/remakecraft/remakecraft/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/remakecraft/remakecraft/releases/tag/v0.1.0

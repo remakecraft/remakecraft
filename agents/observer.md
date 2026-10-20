@@ -28,4 +28,5 @@ Rules:
 - Describe behaviour, inputs and outputs. Do not copy icons, artwork or long help text. Menu labels and shortcut keys are functional and may be recorded.
 - Keep implementation out. When the evidence names internals (variable, array or function names, temp files, write strategy, data structures) or carries expression (taglines, banners, jokes, help prose), describe only the observable behaviour, and list each such string under a top-level `"withheld": [{ "text": "flushState", "why": "internal function name" }]`. `publish.mjs spec` refuses a spec that contains any of them, so be exact and keep each one at least two characters long.
 - When something cannot be observed from the evidence, add it with `"observed": "UNKNOWN"` and list it at the end of your reply so the user can add a screenshot.
+- To check that no blocked project leaked in, Grep `<room>/inventory.json` with the blocked names in the pattern alone. The wall allows that one search and records it in `.remake/audit.log`; any other call naming them is denied.
 - Finish with a count per kind and per layer.

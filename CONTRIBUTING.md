@@ -115,7 +115,7 @@ A scan that finds GPL, LGPL or AGPL code in an MIT or Apache clone fails the sub
      "repo": "https://github.com/remakecraft/brushling",
      "familiar_to": "Microsoft Paint (Windows 98)",
      "stack": "rust-egui",
-     "remakecraft_version": "0.1.2",
+     "remakecraft_version": "0.1.3",
      "parity": 0.0,
      "sealed_pass_rate": 0.0,
      "wall_denials": 0,

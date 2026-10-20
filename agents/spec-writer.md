@@ -28,3 +28,4 @@ Rules:
 - Carry each feature's `source` over from its inventory items: `rea` if any of them is `rea`, else `watched`. In a run started `--with-rea`, `publish.mjs spec` refuses code in spec.json or spec.md (exit 9, one file:line per hit): addresses, disassembly, C-like conditions, and names from `evidence/rea/`. Say what the user sees ("% after + takes that percent of the first number"), never how the binary does it.
 - Acceptance lines must be machine-checkable (pixel values, file bytes, state), never "looks right".
 - State pixel behaviour exactly: colours as RGB, coordinates, inclusive or exclusive bounds, tolerance 0 unless stated.
+- To check that no blocked project leaked in, Grep `<room>/spec/` with the blocked names in the pattern alone. The wall allows that one search and records it in `.remake/audit.log`; any other call naming them is denied.
