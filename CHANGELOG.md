@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-20
+
+Six wall bugs from phase 5 of the chardet proof run (v0.1.0, wall.log #5 to #29). Every fix keeps the clean roles out of the room, the evidence, the sealed tests and blocklisted projects.
+
+### Fixed
+
+- **A glob bracket crashed the guard, and the denial was never logged.** `[a-z-]`-style classes became an invalid regex ("Range out of order"); the guard failed closed with no trace in `wall.log`. Bracket expressions are now translated member by member, a reversed range is read as its letters, and a pattern that still fails to compile matches everything. Every denial now gets a `wall.log` line: guard errors, unreadable payloads and an unreadable `remake.json` included. A `remake.json` saved with a byte-order mark is read instead of refused.
+- **Clean roles could not read their own spilled tool results.** When Claude Code saves a large result to `~/.claude/projects/<project>/<session>/tool-results/`, the agent may now Read it. The guard allows a spill only when the agent's own transcript has the result that announced it and the file starts with that result's preview, so an echoed announcement for another agent's spill gets nothing. Shell access to `.claude/projects` is denied outright, since it holds the room agents' transcripts.
+- **No scratch folder the clean roles could rely on.** `init-run` now makes `.remake/tmp/`, the agents say to use it and never to invent `.scratch/`, and `ls .remake` or `mkdir -p .remake/tmp` are no longer read as reading the run logs. The logs themselves stay closed. A denied write beside the logs (`.remake/tmp-before.txt`) says where temp files go.
+- **Builders were sent to read `.remake/reports/review.md`.** A builder's reads stay inside its worktree, so the wall denied every one. The workflow and `build-steps.mjs` now carry each feature's must-fix findings in its builder prompt, the skill says never to point a builder at `.remake/reports/`, and a worktree builder that reaches for the main tree's `.remake/` is told why.
+- **The reviewer probed `codex --version`, which the wall denies as starting an agent.** `reviewer.md` now checks with `which codex` and skips Codex on Windows.
+- **False positives on regex literals.** A `/` regex delimiter in a script argument (`split(/<testcase /)`, `"/(de|fr)/(utf-8|cp)"`) was read as the filesystem root, an escaped quote broke quote pairing, and a quoted grep pattern such as `'[a-z-]*'` was matched against the room as a shell glob. A lone `/` or `../..` argument, unquoted globs and `find -name` patterns are still checked.
+
+### Known limitation
+
+- **User-level plugins and MCP servers reach the clean roles.** Claude Code hands every subagent the session's skills, MCP instructions and user CLAUDE.md; a plugin cannot remove them from its own agents. The wall still denies MCP tools and agent CLIs to the clean side, and the agents are told to ignore them. For a run without them, start Claude Code with `claude --setting-sources "project,local" --strict-mcp-config --plugin-dir <path to a Remakecraft checkout>` (README, Limits).
+
+### Added
+
+- `tests/chardet-run.test.mjs`: a regression test per bug, replaying the real commands from the chardet run's `wall.log` (`tests/fixtures/chardet-run.json`), each next to the checks that must stay denied.
 ## [0.1.1] - 2026-10-20
 
 Two fixes from the chardet proof run, a CLI cloned on the `web` stack under `claude -p`.
@@ -54,6 +74,7 @@ First public release.
 - Brushling (Paint-style app, Rust + egui): 470 of 471 (99.7%), 154 of 154 sealed, 2 h 56 min wall, $41.08 in tokens. The one failure is a spec defect the review caught.
 - Sweepling (Minesweeper): 265 of 265, about $30, run overnight unattended. Its tests are headless, so its dialogs were never checked in a real window.
 
-[Unreleased]: https://github.com/remakecraft/remakecraft/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/remakecraft/remakecraft/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/remakecraft/remakecraft/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/remakecraft/remakecraft/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/remakecraft/remakecraft/releases/tag/v0.1.0
