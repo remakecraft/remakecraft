@@ -36,7 +36,7 @@ For your own apps, abandoned software, interoperability and learning. Read [Resp
 <p align="center">
   <a href="https://github.com/remakecraft/remakecraft/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/remakecraft/remakecraft/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
-  <a href=".claude-plugin/plugin.json"><img alt="Version 0.1.0" src="https://img.shields.io/badge/version-0.1.0-informational"></a>
+  <a href=".claude-plugin/plugin.json"><img alt="Version 0.1.1" src="https://img.shields.io/badge/version-0.1.1-informational"></a>
   <img alt="Status: early alpha" src="https://img.shields.io/badge/status-early%20alpha-orange">
 </p>
 

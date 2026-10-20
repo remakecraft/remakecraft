@@ -1,6 +1,6 @@
 {
   "name": "remakecraft",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Name an app, get a native rewrite. A clean-room pipeline with sealed tests and an honest parity score.",
   "author": { "name": "Sverre", "url": "https://github.com/hellosverre" },
   "homepage": "https://github.com/remakecraft/remakecraft",
