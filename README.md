@@ -66,6 +66,8 @@ Runs resume from progress files and git checkpoints after a crash or a usage-lim
 
 Cloning a CLI on the `web` or `tauri` stack? Pass `--bin <entry>` (for example `--bin bin/<app>.mjs`): every test then runs against that entry point.
 
+Phases 5 to 7 run as the `/remakecraft:build` workflow when Claude Code can show it for review. Headless (`claude -p`) there is no one to review it, so the session drives the same loop itself: builders, merger, verifier and reviewer as subagents, one stage after another, with the same roles under the wall and the same logs. `scripts/build-steps.mjs` prints that loop for the run.
+
 ## How the wall works
 
 <p align="center"><img src="assets/mascot/wall.svg" alt="Blot, the silver original, on one side of a pixel brick wall; Blit, the teal remake, on the other" width="472"></p>
