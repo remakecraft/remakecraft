@@ -14,7 +14,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { readFileSync, realpathSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { ROOM_MARK, decide, roleOf, stringLeaves } from "./wall.mjs";
+import { ROOM_MARK, decide, leakCheck, roleOf, stringLeaves } from "./wall.mjs";
 import { findRuns, appendLog } from "./run.mjs";
 
 const AGENT_TOOLS = new Set(["Agent", "Task"]);
@@ -214,6 +214,13 @@ export function handle(raw, { fallbackCwd = process.cwd(), home = os.homedir(), 
       const verdict = decideFn(hook, run, home, tmp);
       if (!verdict) continue;
       return { ...deny(verdict.reason), stderr: logDenial([run], hook, verdict.reason) };
+    }
+    // A room role's leak check names blocked projects and passes the blocklist;
+    // each one is kept on record. A line that cannot be written blocks the call (catch below).
+    for (const run of runs) {
+      const terms = leakCheck(hook, run);
+      if (terms)
+        appendLog(run, "audit.log", { event: "leak-check", role: roleOf(hook.agent_type), agent: hook.agent_type, tool: hook.tool_name, targets: logTargets(hook, named, shell), terms, sha256: sha256(input) });
     }
     return ALLOW;
   } catch (err) {

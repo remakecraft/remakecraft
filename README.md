@@ -36,7 +36,7 @@ For your own apps, abandoned software, interoperability and learning. Read [Resp
 <p align="center">
   <a href="https://github.com/remakecraft/remakecraft/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/remakecraft/remakecraft/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
-  <a href=".claude-plugin/plugin.json"><img alt="Version 0.1.2" src="https://img.shields.io/badge/version-0.1.2-informational"></a>
+  <a href=".claude-plugin/plugin.json"><img alt="Version 0.1.3" src="https://img.shields.io/badge/version-0.1.3-informational"></a>
   <img alt="Status: early alpha" src="https://img.shields.io/badge/status-early%20alpha-orange">
 </p>
 
@@ -77,11 +77,11 @@ A run has two trees. The **app tree** (`<app>/`) holds the spec, the visible tes
 | Rule | Who it binds |
 |---|---|
 | No decompilers or disassemblers (Ghidra, IDA, radare2, dnSpy, ILSpy, `objdump -d` and ~15 more) are denied by name | everyone, the main session included |
-| Calls that name an entry on the run's blocklist (known open-source reimplementations of the target) are denied | everyone |
+| Calls that name an entry on the run's blocklist (known open-source reimplementations of the target) are denied. One exception: a room role's Grep over its own output (`<room>/inventory.json`, `spec/`, `tests/`, `sealed/`) with the names in the pattern alone, a leak check recorded in `.remake/audit.log` | everyone |
 | Room roles' Write and Edit calls stay inside the room; shell writes are not checked | room side |
 | The test-writer is denied calls that name `<room>/evidence` | test-writer |
 | Builders, merger, verifier and reviewer are denied any tool call that names the room, including symlinks passed to Read, Write, Edit, Grep or Glob, and calls that name `wall.log` or `audit.log` | clean side |
-| Clean-side shell commands that name a path resolving above the tree (`grep -r . ..`, `cp -r .. x`, `ln -s .. up`, `cd ../..`), into the room, or into the run logs are denied; paths built at run time (`$(dirname $PWD)`, a script) are not resolved | clean side |
+| Clean-side shell commands that name a path resolving above the tree (`grep -r . ..`, `cp -r .. x`, `ln -s .. up`, `cd ../..`), into the room, or into the run logs are denied; a variable the command sets to a literal path (`W=<worktree>; ls $W/tests`) is resolved, paths built at run time (`$(dirname $PWD)`, a script) are not | clean side |
 | Clean-side shell calls that start a known agent CLI by name (`claude`, `codex`, `gemini` and the like) are denied, except the reviewer's Codex call, which runs under a read-only-app-tree profile (`reviewer.md`); the hook checks that the flag is present | clean side |
 | Builders' and the merger's Write and Edit calls can't touch `tests/`, `spec/` or `remake.json`; a shell edit fails the hash check at the next verify. Hashes are checked by the verifier after each build round, and again after the build and the test run | builders, merger |
 

@@ -1,8 +1,8 @@
-// Regression tests for v0.1.2, built from the chardet run's wall.log (v0.1.0,
-// 2026-10-19). fixtures/chardet-run.json holds the real commands with the run's
-// paths swapped for {app} and {projects}; each test names the bug it covers.
-// The wall's guarantees are checked next to every loosening: the room, the
-// evidence, the sealed tests and the blocklist stay out of reach.
+// Regression tests for v0.1.2 and v0.1.3, built from the chardet run's wall.log
+// (v0.1.0, 2026-10-19). fixtures/chardet-run.json holds the real commands with
+// the run's paths swapped for {app} and {projects}; each test names the bug it
+// covers. The wall's guarantees are checked next to every loosening: the room,
+// the evidence, the sealed tests and the blocklist stay out of reach.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
@@ -29,7 +29,7 @@ function replay(id, extra = {}) {
   assert.ok(e, `fixture ${id}`);
   const wt = /\{app\}\/\.claude\/worktrees\/(agent-\w+)/.exec(JSON.stringify(e.input));
   const cwd = wt ? `${app}/.claude/worktrees/${wt[1]}` : app;
-  const hook = { agent_type: `remakecraft:${e.role}`, tool_name: e.tool, tool_input: JSON.parse(fill(JSON.stringify(e.input))), cwd, session_id: SESSION, ...extra };
+  const hook = { agent_type: e.role === "main" ? undefined : `remakecraft:${e.role}`, tool_name: e.tool, tool_input: JSON.parse(fill(JSON.stringify(e.input))), cwd, session_id: SESSION, ...extra };
   return decide(hook, { root: cwd, logRoot: app, blocked: BLOCKED }, home, os.tmpdir());
 }
 
@@ -241,4 +241,155 @@ test("bug 6: a / regex delimiter and [a-z-]* are not path reach or room globs", 
   denied(at("builder", "Bash", { command: `ls ${base}/gu*ling.r*` }), "unquoted glob at the room");
   denied(at("builder", "Bash", { command: `find ${base} -name 'gu*ling.r*'` }), "find -name is a glob");
   denied(at("builder", "Bash", { command: "grep -rn chardet src" }), "the blocklist still applies");
+});
+
+// --- v0.1.3 fix 1: "sealed" and "evidence" as plain words --------------------
+
+test("fix 1: the word sealed or evidence in a report, a script or a pattern reaches nothing", () => {
+  for (const id of ["12", "28", "30", "31"]) allowed(replay(id), id);
+  for (const command of [
+    'git commit -m "test: sealed counts in the parity report"',
+    "grep -n sealed .remake/reports/parity.json",
+    "grep -rn -e evidence -e sealed src",
+    'rg -n "sealed|evidence" .remake/reports',
+    'node --test --test-name-pattern="sealed" tests/unit',
+    "node --test --test-name-pattern sealed tests/unit",
+    `node -e "const j=require('./.remake/reports/parity.json');console.log(j.sealed.passed)"`,
+    "cat > .remake/reports/verify.md <<'EOF'\nsealed 68/78, evidence reviewed\nEOF",
+  ])
+    for (const agent of ["verifier", "builder"]) allowed(at(agent, "Bash", { command }), `${agent}: ${command}`);
+});
+
+test("fix 1: a command that names the sealed or evidence folder is still refused", () => {
+  for (const command of [
+    "cat $R/sealed/a.test.mjs",
+    "ls $R/evidence",
+    "cd $R && cat sealed/a.test.mjs",
+    "cd $R; ls sealed",
+    "find . -name sealed",
+    "find / -name sealed",
+    "ls ../*/evidence",
+    "grep -r x sealed",
+    "grep -rn x --include=sealed .",
+    "cat ../sea''led/x",
+    "cat $R/sea\\led/x",
+    "cat $R/sealed./a",
+    "type %R%\\sealed\\a",
+    'git commit -m "$(cat $R/sealed/a)"',
+    'grep "$(cat $R/sealed/a)" f',
+    "grep -f $R/sealed/a f",
+    'sed "1r $R/sealed/a" f',
+    `node -e "path.join(R,'sealed')"`,
+    `node -e "require('fs').readdirSync(process.env.R+'/sealed')"`,
+    `node -e "require('fs').readdirSync(R+'/evi'+'dence')"`,
+    "python3 - <<'EOF'\nimport os\nprint(os.listdir(R + \"/sealed/a\"))\nEOF",
+    "sh <<EOF\nls sealed\nEOF",
+    "cat <<EOF | sh\nls sealed\nEOF",
+    "cat > .remake/tmp/x.md <<EOF\n$(ls sealed)\nEOF",
+    "cat > .remake/reports/verify.md <<'EOF'\nsee $R/sealed/a.test.mjs\nEOF",
+    `cat ${room}/sealed/a.test.mjs`,
+  ])
+    for (const agent of CLEAN) denied(at(agent, "Bash", { command }), `${agent}: ${command}`);
+  // The logged report, piped to a shell instead of written out.
+  const report = fill(fixture.find((x) => x.id === "12").input.command).replace("<<'EOF'", "<<'EOF' | sh");
+  denied(at("verifier", "Bash", { command: report }), "report piped to sh");
+});
+
+// --- v0.1.3 fix 2: a builder's $W/ paths -------------------------------------
+
+test("fix 2: a builder's own $W/tests/visible is its worktree, not the room", () => {
+  for (const id of ["7", "8"]) allowed(replay(id), id);
+  allowed(at("builder", "Bash", { command: `export W=${wt}; ls $W/tests/visible | head` }, wt), "export W=");
+  allowed(at("builder", "Bash", { command: `W="${wt}"; ls "\${W}/tests/visible"` }, wt), "quoted ${W}");
+});
+
+test("fix 2: a variable that leads out of the tree or into the room is still refused", () => {
+  for (const command of [
+    "W=..; cat $W/x",
+    "W=../..; ls $W",
+    `W=${room}; ls $W/x`,
+    `W=${base}; cat $W/g*.r*/inventory.json`,
+    `A=${base}; B=$A; ls $B/g*.r*`,
+    `W=${base}; ls $W`,
+    "W=/; ls $W",
+    `W=${wt}; cat $W/../../../../x`,
+    "ls $X/gu*room/inventory.json",
+    "ls $X/guess*",
+    "ls $X/tests/visible", // a variable nobody set may hold any path, as in v0.1.2
+    "W=$(dirname $PWD); ls $W/tests/visible",
+    `W=${wt}; W=$(dirname $W); ls $W/tests/visible`,
+    `W=${wt}; cat $W/sealed/a.test.mjs`,
+  ])
+    denied(at("builder", "Bash", { command }, wt), command);
+});
+
+// --- v0.1.3 fix 3: a room role's leak check over its own output --------------
+
+test("fix 3: a room role may grep its own output for the blocklist", () => {
+  allowed(replay("2"), "2");
+  const grep = (agent, input) => at(agent, "Grep", input);
+  allowed(grep("spec-writer", { pattern: "chardet", path: `${room}/spec` }), "spec-writer spec/");
+  allowed(grep("test-writer", { pattern: "(?i)chardet", path: `${room}/tests` }), "test-writer tests/");
+  allowed(grep("test-writer", { pattern: "chardet", path: `${room}/sealed/a.test.mjs` }), "test-writer sealed/");
+  allowed(grep("observer", { pattern: "chardet", path: `${room}/inventory.json` }), "observer inventory.json");
+});
+
+test("fix 3: every other blocklist hit is still refused", () => {
+  for (const id of ["3", "13"]) denied(replay(id), id);
+  const grep = (agent, input, cwd) => at(agent, "Grep", input, cwd);
+  const chardet = { pattern: "chardet" };
+  for (const agent of CLEAN) {
+    denied(grep(agent, { ...chardet, path: `${app}/spec` }), `${agent} over the app's spec`);
+    denied(grep(agent, { ...chardet, path: `${room}/spec` }), `${agent} over the room's spec`);
+  }
+  denied(grep("test-writer", { ...chardet, path: `${room}/evidence` }), "test-writer over evidence");
+  denied(grep("test-writer", { ...chardet, path: `${room}/tests/../evidence` }), "climbs to evidence");
+  denied(grep("spec-writer", { ...chardet, path: `${room}/tests` }), "spec-writer over tests/, not its own");
+  denied(grep("spec-writer", { ...chardet, path: `${room}/evidence` }), "spec-writer over evidence");
+  denied(grep("observer", { ...chardet, path: `${room}/evidence` }), "observer over evidence");
+  denied(grep("spec-writer", { ...chardet, path: room }), "the whole room");
+  denied(grep("spec-writer", { ...chardet }), "no path");
+  denied(grep("spec-writer", { ...chardet, path: `${room}/spec`, glob: "chardet/**" }), "a term in the glob");
+  denied(grep("spec-writer", { pattern: "x", path: `${room}/spec/chardet` }), "a term in the path");
+  denied(grep("spec-writer", { ...chardet, path: "spec" }, `${base}/elsewhere`), "a relative path elsewhere");
+  denied(decide({ agent_type: "remakecraft:spec-writer", tool_name: "Grep", tool_input: { ...chardet, path: `${room}/spec` }, cwd: app, real_paths: [`${base}/chardet-src`] }, { root: app, blocked: BLOCKED }, home), "a symlink out of spec/");
+  denied(decide({ agent_type: "remakecraft:spec-writer", tool_name: "Grep", tool_input: { ...chardet, path: `${room}/spec` }, cwd: app, real_paths: [`${base}/src`] }, { root: app, blocked: BLOCKED }, home), "a link out of spec/, unnamed");
+  denied(at("spec-writer", "Bash", { command: `grep -rn chardet ${room}/spec` }), "Bash grep stays closed");
+  denied(at("spec-writer", "WebFetch", { url: "https://github.com/chardet/chardet" }), "WebFetch stays closed");
+  denied(at("spec-writer", "Read", { file_path: `${room}/spec/chardet.md` }), "Read of a named file");
+  assert.match(at("spec-writer", "Grep", { ...chardet, path: room }).reason, /<room>\/spec/, "the denial says how");
+});
+
+test("fix 3: each leak check is in audit.log; a check that cannot be logged is refused", (t) => {
+  const out = tempDir(t, "rc-leak");
+  const tree = path.join(out, "pad");
+  const roomDir = path.join(out, "pad.remake-room");
+  mkdirSync(path.join(roomDir, "spec"), { recursive: true });
+  mkdirSync(path.join(roomDir, "evidence"), { recursive: true });
+  writeFileSync(path.join(roomDir, "spec", "spec.json"), "{}\n");
+  mkdirSync(tree, { recursive: true });
+  writeFileSync(path.join(tree, "remake.json"), '{"app":"pad","blocked":["chardet"]}');
+  const call = (agent, p) => handle(JSON.stringify({ session_id: SESSION, cwd: tree, tool_name: "Grep", agent_type: agent, tool_input: { pattern: "chardet|uchardet", path: p } }), { home: path.join(out, "home") });
+  const decision = (r) => (r.stdout ? JSON.parse(r.stdout).hookSpecificOutput.permissionDecision : "allow");
+  const spec = path.join(roomDir, "spec", "spec.json").replace(/\\/g, "/");
+  const lines = (name) => (existsSync(path.join(tree, ".remake", name)) ? readFileSync(path.join(tree, ".remake", name), "utf8").trim().split("\n").map((l) => JSON.parse(l)) : []);
+
+  assert.equal(decision(call("remakecraft:spec-writer", spec)), "allow");
+  const audit = lines("audit.log").filter((e) => e.event === "leak-check");
+  assert.equal(audit.length, 1);
+  assert.equal(audit[0].role, "spec-writer");
+  assert.equal(audit[0].tool, "Grep");
+  assert.deepEqual(audit[0].terms, ["chardet"]);
+  assert.match(audit[0].sha256, /^[0-9a-f]{64}$/);
+  assert.equal(lines("wall.log").length, 0, "an allowed check is not a denial");
+
+  assert.equal(decision(call("remakecraft:builder", spec)), "deny");
+  assert.equal(decision(call("remakecraft:spec-writer", path.join(roomDir, "evidence").replace(/\\/g, "/"))), "deny");
+  assert.equal(lines("wall.log").length, 2, "denials are logged as before");
+  assert.equal(lines("audit.log").filter((e) => e.event === "leak-check").length, 1, "no leak-check line for a denial");
+
+  // Fail closed: no audit line, no call.
+  rmSync(path.join(tree, ".remake", "audit.log"));
+  mkdirSync(path.join(tree, ".remake", "audit.log"));
+  assert.equal(decision(call("remakecraft:spec-writer", spec)), "deny");
 });

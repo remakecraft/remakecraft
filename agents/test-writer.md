@@ -30,3 +30,5 @@ Write `<room>/tests/manifest.json`:
 When the control channel is a command (a CLI, or a binary the tests start), have both suites read its path from `REMAKE_APP_BIN` when that is set, and fall back to the app tree's own entry point: the `--bin "<entry>"` on remake.json's test commands, relative to the app root. The harness passes that `--bin`, so `REMAKE_APP_BIN` is always set when it scores. If the commands pass no `--bin` for a command target, say so in your report: the suites would have nothing to start. The room uses it to run your tests against the original before they are published; a test the original fails is your bug or the spec's, never the builders'.
 
 `publish.mjs tests` refuses a manifest where a spec feature lacks a visible or a sealed test, and warns when the sealed share leaves 20 to 40%. Report counts per layer.
+
+To check that no blocked project leaked in, Grep `<room>/tests/` and `<room>/sealed/` one at a time, with the blocked names in the pattern alone. The wall allows that search and records it in `.remake/audit.log`; any other call naming them is denied, the whole room included.

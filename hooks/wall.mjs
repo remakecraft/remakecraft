@@ -195,6 +195,32 @@ function blockedTermHit(texts, blocked) {
   return null;
 }
 
+// What each room role writes, relative to the room. Before its output crosses,
+// a room role may Grep it for the blocklist to check that nothing leaked in.
+const OWN_OUTPUT = { observer: ["inventory.json"], "spec-writer": ["spec"], "test-writer": ["tests", "sealed"] };
+
+/**
+ * The blocked terms of a room role's leak check: a Grep that names them in its
+ * pattern alone, over a path inside that role's own output (symlinks resolved).
+ * Null for anything else, which the blocklist denies as before; the clean side
+ * and the main session never get here. guard.mjs records each one in audit.log.
+ */
+export function leakCheck(hook, run) {
+  const role = roleOf(hook?.agent_type);
+  if (!run || hook.tool_name !== "Grep" || !OWN_OUTPUT[role]) return null;
+  const { pattern, ...rest } = hook.tool_input || {};
+  if (typeof pattern !== "string" || typeof rest.path !== "string" || !rest.path.trim()) return null;
+  const blocked = run.blocked || [];
+  // A blocked name in the path or the glob is a reach for that project, not a check.
+  if (blockedTermHit(stringLeaves(rest), blocked)) return null;
+  const terms = blocked.filter((t) => blockedTermHit([pattern], [t]));
+  if (!terms.length) return null;
+  const room = `${norm(run.logRoot || run.root)}${ROOM_MARK}`;
+  const own = OWN_OUTPUT[role].map((d) => `${room}/${d}`);
+  const paths = [resolveFrom(norm(hook.cwd || run.root), rest.path), ...(hook.real_paths || []).map(norm)];
+  return paths.every((p) => own.some((o) => isInside(p, o))) ? terms : null;
+}
+
 const inOriginal = (p) => {
   const l = lower(p).replace(/\/+$/, "");
   return l.includes(ORIGINAL_DIR + "/") || l.endsWith(ORIGINAL_DIR);
@@ -361,16 +387,26 @@ function globReachesRoom(glob, room) {
   return g.length >= r.length;
 }
 
-/** A glob or a find/ls pattern that names the room without spelling it out. */
-function shellGlobsRoom(command, cwd, room) {
+/**
+ * A glob or a find/ls pattern that names the room without spelling it out.
+ * opaque: a $VAR may hold any path, so $X/tests/visible could be anything and
+ * is refused. decide() passes it for the command with its literal variables
+ * filled in (substituteVars), where a $VAR left over is one nobody can read;
+ * for the command as written a $VAR stands for its own text only.
+ */
+function shellGlobsRoom(command, cwd, room, opaque = false) {
   const roomName = lower(room).split("/").pop();
   for (const toks of simpleCommands(command)) {
     if (/^(cd|pushd|set-location|sl)$/i.test(toks[0]) && toks[1] && !hasWild(toks[1])) { cwd = resolveFrom(cwd, toks[1]); continue; }
     for (const t of toks.slice(1)) {
       if (!hasWild(t)) continue;
-      // A bare pattern (find -name, -path, ls) tested against the room's name.
+      // A bare pattern (find -name, -path, ls) tested against the room's name,
+      // whole and segment by segment.
       const literal = t.replace(/[*?[\]]|\$(\{[^}]*\}|\w+)/g, "");
-      if (literal.length >= 4 && segmentRegex(lower(t).replace(/\//g, "")).test(roomName)) return t;
+      // Opaque, the slashes go first and $X/tests reads as one variable $Xtests, which matches anything.
+      const named = opaque ? lower(t) : lower(t).replace(/\$(\{[^}]*\}|\w+)/g, "*");
+      const segHit = named.split("/").some((s) => s.replace(/[*?[\]]|\$(\{[^}]*\}|\w+)/g, "").length >= 4 && segmentRegex(s).test(roomName));
+      if (literal.length >= 4 && (segmentRegex(named.replace(/\//g, "")).test(roomName) || segHit)) return t;
       if (/^\$/.test(t)) continue; // a variable we cannot resolve
       const abs = /^([a-z]:)?\//i.test(norm(t)) ? norm(t) : `${norm(cwd).replace(/\/+$/, "")}/${norm(t)}`;
       const parts = [];
@@ -540,14 +576,41 @@ function mapQuoted(seg, fn) {
   return out;
 }
 
+const GIT_COMMIT = /^\s*(?:\w+=\S*\s+)*git(?:\s+-\S+)*\s+commit\b/;
+const COMMIT_MSG = new RegExp(`(\\s(?:--message|-[a-zA-Z]*m)(?:=|\\s+))(?:${SAFE_DQ}|${SAFE_SQ})`, "g");
+const SAFE_LITERAL = new RegExp(`^(?:${SAFE_DQ}|${SAFE_SQ})$`);
+
+/** A git commit segment with its quoted messages, which cannot run code, replaced; null for any other segment. */
+function withoutCommitMessage(seg) {
+  const g = GIT_COMMIT.exec(seg);
+  return g ? seg.slice(0, g[0].length) + seg.slice(g[0].length).replace(COMMIT_MSG, '$1"msg"') : null;
+}
+
+/**
+ * The command with fn applied to each simple command, split on ; & | and
+ * newlines outside quotes, separators kept. A backslash escapes the next
+ * character outside single quotes: "name=\"x\"" is one string.
+ */
+function mapSegments(command, fn) {
+  let out = "", seg = "", q = "", esc = false;
+  for (const c of String(command)) {
+    if (esc) { seg += c; esc = false; continue; }
+    if (c === "\\" && q !== "'") { seg += c; esc = true; continue; }
+    if (q) { seg += c; if (c === q) q = ""; continue; }
+    if (c === '"' || c === "'") { q = c; seg += c; continue; }
+    if (/[;&|\n]/.test(c)) { out += fn(seg) + c; seg = ""; continue; }
+    seg += c;
+  }
+  return out + fn(seg);
+}
+
 function reachView(command) {
-  const msgRe = new RegExp(`(\\s(?:--message|-[a-zA-Z]*m)(?:=|\\s+))(?:${SAFE_DQ}|${SAFE_SQ})`, "g");
   const evalRe = new RegExp(`(\\s(?:-e|-c|-p|--eval|--print|-command)\\s+)(${SAFE_DQ}|${SAFE_SQ})`, "gi");
-  const literal = new RegExp(`^(?:${SAFE_DQ}|${SAFE_SQ})$`);
+  const literal = SAFE_LITERAL;
   const rewrite = (seg) => {
     // Only the git commit's own segment loses its message ...
-    const g = /^\s*(?:\w+=\S*\s+)*git(?:\s+-\S+)*\s+commit\b/.exec(seg);
-    if (g) return seg.slice(0, g[0].length) + seg.slice(g[0].length).replace(msgRe, '$1"msg"');
+    const commit = withoutCommitMessage(seg);
+    if (commit !== null) return commit;
     const words = wordsAt(seg);
     const { prog, at } = programOf(words.map((w) => w.text.replace(/^["']+|["']+$/g, "")));
     // ... a search or edit program loses its quoted pattern ...
@@ -570,18 +633,115 @@ function reachView(command) {
     const delimiters = (q) => (/^["']\/+["']$/.test(q) ? q : q.replace(/(^|[^\w.~:/-])\/+(?![\w.~-])/g, "$1÷"));
     return mapQuoted(seg.replace(evalRe, (_m, flag, body) => flag + lone(body)), (q) => (literal.test(q) ? delimiters(q) : q));
   };
-  // Split on ; & | and newlines outside quotes, keeping the separators.
-  // A backslash escapes the next character outside single quotes: "name=\"x\"" is one string.
-  let out = "", seg = "", q = "", esc = false;
-  for (const c of dropHeredocBodies(command)) {
-    if (esc) { seg += c; esc = false; continue; }
-    if (c === "\\" && q !== "'") { seg += c; esc = true; continue; }
-    if (q) { seg += c; if (c === q) q = ""; continue; }
-    if (c === '"' || c === "'") { q = c; seg += c; continue; }
-    if (/[;&|\n]/.test(c)) { out += rewrite(seg) + c; seg = ""; continue; }
-    seg += c;
+  return mapSegments(dropHeredocBodies(command), rewrite);
+}
+
+// --- The sealed tests and the evidence by name -------------------------------
+// They sit in <room>/sealed/ and <room>/evidence/. A clean role's command that
+// names either folder is refused even when the room itself hides behind a
+// variable: $R/sealed/x, cd $R && ls evidence, path.join(r, "sealed"). The
+// word alone reaches nothing: a commit message, a grep pattern, a test name, a
+// report written through a heredoc, or j.sealed in a script.
+
+const HOLDOUT = "(?:evidence|sealed)";
+const NAME_GOES_ON = "(?![a-z0-9_-]|\\.[a-z0-9_-])"; // sealed-count and sealed.json are other names; sealed. and sealed* are not
+// The folder's name standing alone; f.sealed and x.evidence are properties.
+const HOLDOUT_NAME = new RegExp(`(?<![a-z0-9_-]|[a-z0-9_$)\\]]\\.)${HOLDOUT}${NAME_GOES_ON}`);
+// The name beside a path separator. A separator before a quote is an escape or ends a string ("/"+x).
+const SEP = "[/\\\\](?![\"'`])";
+const HOLDOUT_SEGMENT = new RegExp(`${SEP}${HOLDOUT}${NAME_GOES_ON}|(?<![a-z0-9_.-])${HOLDOUT}\\.?${SEP}`);
+// The name as a whole string in a script.
+const HOLDOUT_STRING = new RegExp(`(["'\`])${HOLDOUT}\\1`);
+const GREP_PROGS = new Set(["grep", "egrep", "fgrep", "rg", "ag", "ack"]);
+const TEST_NAME_FLAGS = new Set(["--test-name-pattern", "--test-skip-pattern", "--testnamepattern", "--grep"]);
+const unquote = (t) => t.replace(/["']/g, "");
+// A pattern or test name that is only text: it runs nothing, and has no separator,
+// so a path-valued flag the tables do not list (rg --pre, --ignore-file) is never taken for one.
+const plainText = (w) => !/\$\(|`|[<>]\(/.test(w) && !/[/\\]/.test(unquote(w));
+const shellUnquote = (w) => (w.startsWith("'") ? w.slice(1, -1) : w.slice(1, -1).replace(/\\([\\"$`])/g, "$1"));
+
+/**
+ * The command split by how it may name a folder. shell: what the shell reads,
+ * with commit messages, grep patterns and test names blanked. code: scripts a
+ * script runner gets through -e or a heredoc. prose: heredoc bodies cat or tee
+ * write out. A heredoc that is piped on, substituted or expands $( ) is shell.
+ */
+function holdoutViews(command) {
+  const shell = [], code = [], prose = [];
+  const lines = String(command).split("\n");
+  const rest = [];
+  for (let i = 0; i < lines.length; i++) {
+    rest.push(lines[i]);
+    const m = HEREDOC.exec(lines[i]);
+    if (!m) continue;
+    const end = lines.findIndex((l, j) => j > i && l.replace(/^\t+/, "") === m[2]);
+    if (end < 0) continue; // unterminated: the rest stays shell text
+    const body = lines.slice(i + 1, end).join("\n");
+    const { prog } = programOf(lines[i].slice(0, m.index).split(/[;&|]/).pop().trim().split(/\s+/).map((t) => t.replace(/^["']+|["']+$/g, "")));
+    const fed = /[|`]|\$\(/.test(lines[i]) || (!m[1] && /\$\(|`/.test(body));
+    (fed ? shell : SCRIPT_RUNNERS.has(prog) ? code : prog === "cat" || prog === "tee" ? prose : shell).push(body);
+    i = end - 1; // the closing delimiter line stays
   }
-  return out + rewrite(seg);
+  shell.push(mapSegments(rest.join("\n"), (seg) => {
+    const commit = withoutCommitMessage(seg);
+    if (commit !== null) return commit;
+    const words = wordsAt(seg);
+    const { prog, at } = programOf(words.map((w) => w.text.replace(/^["']+|["']+$/g, "")));
+    const swap = new Map(); // word index -> replacement
+    if (GREP_PROGS.has(prog))
+      for (const i of patternWords(words.slice(at).map((w) => w.text), PATTERN_PROGS[prog]).map((i) => i + at))
+        if (words[i] && plainText(words[i].text)) swap.set(i, '"pat"');
+    for (let i = at + 1; i < words.length; i++) {
+      const [flag, ...value] = words[i].text.split("=");
+      if (!TEST_NAME_FLAGS.has(flag.toLowerCase())) continue;
+      if (value.length) { if (plainText(value.join("="))) swap.set(i, `${flag}="pat"`); }
+      else if (words[i + 1] && plainText(words[i + 1].text)) swap.set(i + 1, '"pat"');
+    }
+    if (SCRIPT_RUNNERS.has(prog))
+      for (let i = at + 1; i + 1 < words.length; i++)
+        if (EVAL_FLAGS.has(words[i].text.toLowerCase()) && SAFE_LITERAL.test(words[i + 1].text)) {
+          code.push(shellUnquote(words[i + 1].text));
+          swap.set(i + 1, '"code"');
+        }
+    let out = seg;
+    for (const i of [...swap.keys()].sort((a, b) => b - a))
+      out = out.slice(0, words[i].at) + swap.get(i) + out.slice(words[i].at + words[i].text.length);
+    return out;
+  }));
+  return { shell, code, prose };
+}
+
+/** Whether a clean role's command names the room's sealed/ or evidence/ folder. */
+function namesHoldout(command) {
+  const { shell, code, prose } = holdoutViews(command);
+  // As written and with cheap obfuscation undone (seal''ed, 'evi'+'dence').
+  const forms = (texts) => texts.flatMap((t) => [t.toLowerCase(), deobfuscate(t)]);
+  return forms(shell).some((t) => HOLDOUT_NAME.test(t))
+    || forms(code).some((t) => HOLDOUT_SEGMENT.test(t) || HOLDOUT_STRING.test(t))
+    || forms(prose).some((t) => HOLDOUT_SEGMENT.test(t));
+}
+
+/**
+ * The command with each $NAME or ${NAME} that an assignment earlier in it set
+ * to a literal value replaced by that value: W=<tree>; cat $W/src/a.mjs. The
+ * wall checks this next to the command as written, never instead of it, so a
+ * wrong guess here can add a denial but never lift one.
+ */
+function substituteVars(command) {
+  const vars = new Map();
+  return mapSegments(command, (seg) => {
+    const out = seg.replace(/\$\{(\w+)\}|\$(\w+)/g, (m, a, b) => vars.get(a ?? b) ?? m);
+    const words = out.trim().split(/\s+/);
+    for (let i = /^(export|declare|local|readonly|typeset)$/.test(words[0]) ? 1 : 0; i < words.length; i++) {
+      if (words[i].startsWith("-")) continue; // declare -x
+      const m = /^([A-Za-z_]\w*)(\+?)=(.*)$/.exec(words[i]);
+      if (!m) break;
+      const value = m[3].replace(/^(["'])(.*)\1$/, "$2");
+      if (!m[2] && value && !/[\s$`%*?[\]{}"'<>|;&()]/.test(value)) vars.set(m[1], value);
+      else vars.delete(m[1]);
+    }
+    return out;
+  });
 }
 
 const strictAncestor = (p, of) => isInside(of, p) && lower(p).replace(/\/+$/, "") !== lower(of).replace(/\/+$/, "");
@@ -678,7 +838,11 @@ export function decide(hook, run, home, tmp) {
 
   // Everyone, the main session included.
   const term = blockedTermHit(texts, run.blocked || []);
-  if (term) return deny(`"${term}" is on this run's blocklist (an existing implementation of the target).`);
+  if (term && !leakCheck(hook, run)) {
+    const own = OWN_OUTPUT[role];
+    const how = own ? ` To check your own output for leaks, Grep with the names in the pattern and path set inside ${own.map((d) => `<room>/${d}`).join(" or ")}.` : "";
+    return deny(`"${term}" is on this run's blocklist (an existing implementation of the target).${how}`);
+  }
   if (SHELL_TOOLS.has(tool) && !mayInspect) {
     const tokens = shellTokens(input.command || "");
     const hit = tokens.find((t) => DECOMPILERS.has(t));
@@ -764,11 +928,14 @@ export function decide(hook, run, home, tmp) {
     const plain = deobfuscate(raw);
     const agentCli = agentCliHit(raw, role);
     if (agentCli) return deny(`${role} may not start another agent (${agentCli}); it would run outside the wall.`);
-    if ([cmd, plain].some((c) => /(^|[^a-z])(evidence|sealed)([^a-z]|$)/.test(c))) return deny(`${role} may not reach for evidence or sealed tests.`);
+    // With literal variables filled in too: W=<tree>; cat $W/src/a.mjs is read as written and as it runs.
+    const filled = substituteVars(raw);
+    if (namesHoldout(raw) || namesHoldout(filled)) return deny(`${role} may not reach for evidence or sealed tests.`);
     if (plain.includes(ROOM_MARK) || ROOM_FRAGMENT.test(plain)) return deny(`${role} may not name the room, even in pieces.`);
     if (/\.\.\/[^\s]*[*?]/.test(cmd)) return deny(`${role} may not glob outside its tree.`);
     // reachView: a quoted grep or sed pattern is a regex for the program, never a glob for the shell.
-    const glob = shellGlobsRoom(reachView(raw), cwd, `${mainRoot}${ROOM_MARK}`);
+    // A variable the command sets to a literal is checked as its value; any other stays opaque, as before.
+    const glob = shellGlobsRoom(reachView(filled), cwd, `${mainRoot}${ROOM_MARK}`, true) || shellGlobsRoom(reachView(raw), cwd, `${mainRoot}${ROOM_MARK}`);
     if (glob) return deny(`${role} may not use a pattern that matches the room (${glob}).`);
     if (NAMES_LOG.test(plain)) return deny(`${role} may not read wall.log or audit.log; they record the room's paths.`);
     // Every agent's transcript and spilled output sits there, the room agents' included.
@@ -777,7 +944,8 @@ export function decide(hook, run, home, tmp) {
     const assigned = agentAssigned(plain) || agentAssigned(raw);
     if (assigned) return deny(`${role} may not start another agent (${assigned} via a variable); it would run outside the wall.`);
     // The unstripped command: a stripped `cd original` would leave later ../ resolving against the tree.
-    const reach = shellReach(input.command || "", cwd, run, home, mainRoot, lift);
+    const reach = shellReach(input.command || "", cwd, run, home, mainRoot, lift)
+      || shellReach(substituteVars(input.command || ""), cwd, run, home, mainRoot, lift);
     if (reach) return deny(`${role} may not reach outside its tree (${reach}). Name paths inside the tree.`);
     const encoded = encodedHit(raw);
     if (encoded) return deny(`${role} may not decode its way to the room (${encoded}).`);
